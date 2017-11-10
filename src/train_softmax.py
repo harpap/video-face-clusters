@@ -42,6 +42,7 @@ import tensorflow.contrib.slim as slim
 from tensorflow.python.ops import data_flow_ops
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import array_ops
+import time
 
 def main(args):
   
@@ -95,6 +96,7 @@ def main(args):
         # Create a queue that produces indices (euretiria) into the image_list and label_list 
         labels = ops.convert_to_tensor(label_list, dtype=tf.int32)
 		print('labels: %d' % labels)
+		time.sleep(120)
         range_size = array_ops.shape(labels)[0]
         index_queue = tf.train.range_input_producer(range_size, num_epochs=None,
                              shuffle=True, seed=None, capacity=32)
