@@ -117,7 +117,10 @@ def main(args):
                 
                 for i in range(len(best_class_indices)):
                     print('%4d  %s: %.3f' % (i, class_names[best_class_indices[i]], best_class_probabilities[i]))
-                    
+                print('emb_array:')
+                print (emb_array)
+                print('labels:')
+                print (labels)
                 accuracy = np.mean(np.equal(best_class_indices, labels))
                 print('Accuracy: %.3f' % accuracy)
                 

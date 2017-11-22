@@ -42,7 +42,6 @@ import tensorflow.contrib.slim as slim
 from tensorflow.python.ops import data_flow_ops
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import array_ops
-import time
 
 def main(args):
   
@@ -93,10 +92,8 @@ def main(args):
         image_list, label_list = facenet.get_image_paths_and_labels(train_set)
         assert len(image_list)>0, 'The dataset should not be empty'
         
-        # Create a queue that produces indices (euretiria) into the image_list and label_list 
+        # Create a queue that produces indices into the image_list and label_list 
         labels = ops.convert_to_tensor(label_list, dtype=tf.int32)
-		print('labels: %d' % labels)
-		time.sleep(120)
         range_size = array_ops.shape(labels)[0]
         index_queue = tf.train.range_input_producer(range_size, num_epochs=None,
                              shuffle=True, seed=None, capacity=32)
@@ -376,7 +373,7 @@ def parse_arguments(argv):
     parser.add_argument('--pretrained_model', type=str,
         help='Load a pretrained model before training starts.')
     parser.add_argument('--data_dir', type=str,
-        help='Path to the data directory containing aligned face patches. Multiple directories are separated with colon.',
+        help='Path to the data directory containing aligned face patches.',
         default='~/datasets/casia/casia_maxpy_mtcnnalign_182_160')
     parser.add_argument('--model_def', type=str,
         help='Model definition. Points to a module containing the definition of the inference graph.', default='models.inception_resnet_v1')
