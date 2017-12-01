@@ -96,7 +96,12 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
         img = misc.imread(os.path.expanduser(image_paths[i]), mode='RGB')
         img_size = np.asarray(img.shape)[0:2]
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
-        det = np.squeeze(bounding_boxes[0,0:4])
+        try:    
+            det = np.squeeze(bounding_boxes[0,0:4])
+        except:
+            bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
+            print (bounding_boxes)
+            det = np.squeeze(bounding_boxes[0,0:4])
         bb = np.zeros(4, dtype=np.int32)
         bb[0] = np.maximum(det[0]-margin/2, 0)
         bb[1] = np.maximum(det[1]-margin/2, 0)
