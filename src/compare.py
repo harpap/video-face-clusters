@@ -98,16 +98,16 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
         try:    
             det = np.squeeze(bounding_boxes[0,0:4])
+            bb = np.zeros(4, dtype=np.int32)
+            bb[0] = np.maximum(det[0]-margin/2, 0)
+            bb[1] = np.maximum(det[1]-margin/2, 0)
+            bb[2] = np.minimum(det[2]+margin/2, img_size[1])
+            bb[3] = np.minimum(det[3]+margin/2, img_size[0])
+            cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
         except:
-            bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
-            print (bounding_boxes)
-            det = np.squeeze(bounding_boxes[0,0:4])
-        bb = np.zeros(4, dtype=np.int32)
-        bb[0] = np.maximum(det[0]-margin/2, 0)
-        bb[1] = np.maximum(det[1]-margin/2, 0)
-        bb[2] = np.minimum(det[2]+margin/2, img_size[1])
-        bb[3] = np.minimum(det[3]+margin/2, img_size[0])
-        cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
+            print('image:'+image_paths[i]+'\nalready cropped or too small for further crop')
+            cropped =img
+        
         aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
         prewhitened = facenet.prewhiten(aligned)
         img_list[i] = prewhitened
@@ -130,3 +130,6 @@ def parse_arguments(argv):
 
 if __name__ == '__main__':
     main(parse_arguments(sys.argv[1:]))
+#na valw eikones apo video (me to xeri) wste n dw poso mikri paei i diafora
+#kai na einai suneteuksi wste n allazoun ta proswpa
+#episis na to ftiaksw wste n mn ksanakanei align ro compare.py
