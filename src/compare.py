@@ -94,6 +94,7 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
     img_list = [None] * nrof_samples
     for i in range(nrof_samples):
         img = misc.imread(os.path.expanduser(image_paths[i]), mode='RGB')
+        '''den kanw align
         img_size = np.asarray(img.shape)[0:2]
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
         try:    
@@ -106,8 +107,8 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
             cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
         except:
             print('image:'+image_paths[i]+'\nalready cropped or too small for further crop')
-            cropped =img
-        
+            cropped =img'''
+        cropped =img
         aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
         prewhitened = facenet.prewhiten(aligned)
         img_list[i] = prewhitened
