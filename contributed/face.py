@@ -42,8 +42,8 @@ import facenet
 
 
 gpu_memory_fraction = 0.3
-facenet_model_checkpoint = os.path.dirname(__file__) + "/../model_checkpoints/20170512-110547"
-classifier_model = os.path.dirname(__file__) + "/../model_checkpoints/my_classifier_1.pkl"
+facenet_model_checkpoint = "~/models/facenet/20170512-110547"
+classifier_model = "~/models/lfw_classifier.pkl"
 debug = False
 
 

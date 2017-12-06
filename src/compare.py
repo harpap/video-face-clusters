@@ -29,6 +29,7 @@ from __future__ import print_function
 from scipy import misc
 import tensorflow as tf
 import numpy as np
+import cv2
 import sys
 import os
 import argparse
@@ -109,8 +110,16 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
             print('image:'+image_paths[i]+'\nalready cropped or too small for further crop')
             cropped =img'''
         cropped =img
+        r,g,b = cv2.split(img)
+        img2 = cv2.merge([b,g,r])
+        cv2.imshow('image',img2)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
         prewhitened = facenet.prewhiten(aligned)
+        cv2.imshow('imageoo',prewhitened)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         img_list[i] = prewhitened
     images = np.stack(img_list)
     return images
@@ -131,6 +140,6 @@ def parse_arguments(argv):
 
 if __name__ == '__main__':
     main(parse_arguments(sys.argv[1:]))
-#na valw eikones apo video (me to xeri) wste n dw poso mikri paei i diafora
-#kai na einai suneteuksi wste n allazoun ta proswpa
-#episis na to ftiaksw wste n mn ksanakanei align ro compare.py
+#apo ta palia i mikroteri apostasi =0.7680
+#sto interview 0.2856
+#na ftiaksw programma na pairnei frames apo video kai na vriskei tis apostaseis
