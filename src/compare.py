@@ -32,14 +32,19 @@ import numpy as np
 import cv2
 import sys
 import os
+import time
 import argparse
 import facenet
 import align.detect_face
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def main(args):
-    
-    images = load_and_align_data(args.image_files, args.image_size, args.margin, args.gpu_memory_fraction)
+    output_dir_vid = os.path.expanduser(args.output_dir + '/video')
+    if not os.path.exists(output_dir_vid):
+        os.makedirs(output_dir_vid)
+    #frameGetter('C:/Users/user/Documents/GitHub/facenet-private/Cristiano Ronaldo.mp4',output_dir_vid)
+    dataset = facenet.get_dataset(args.output_dir)
+    images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
     with tf.Graph().as_default():
 
         with tf.Session() as sess:
@@ -57,11 +62,11 @@ def main(args):
             emb = sess.run(embeddings, feed_dict=feed_dict)
             print('embeddings:')
             print(emb)
-            nrof_images = len(args.image_files)
+            nrof_images = len(dataset[0].image_paths)
 
             print('Images:')
             for i in range(nrof_images):
-                print('%1d: %s' % (i, args.image_files[i]))
+                print('%1d: %s' % (i, dataset[0].image_paths[i]))
             print('')
             
             # Print distance matrix
@@ -77,7 +82,23 @@ def main(args):
                     print('  %1.4f  ' % dist, end='')
                 print('')
             
-            
+def frameGetter(vid,output_dir):
+    frame_interval = 1000  # Number of frames after which to save
+    frame_rate = 0
+    frame_count = 0
+    cap = cv2.VideoCapture(vid)
+    while(cap.isOpened()):
+        ret, frame = cap.read()
+        if ret==True:
+            if (frame_count % frame_interval) == 0:
+                cv2.imwrite(output_dir+ "/frame-" + str(frame_count) + ".jpg", frame)
+            frame_count+=1
+        else:
+            break
+    # When everything is done, release the capture
+    cap.release()
+
+
 def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
 
     minsize = 20 # minimum size of face
@@ -93,12 +114,16 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
   
     nrof_samples = len(image_paths)
     img_list = [None] * nrof_samples
+    j=0
+    pos=[]
     for i in range(nrof_samples):
         img = misc.imread(os.path.expanduser(image_paths[i]), mode='RGB')
-        '''den kanw align
         img_size = np.asarray(img.shape)[0:2]
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
-        try:    
+        if bounding_boxes.size==0:
+            print('image:'+image_paths[i]+'\n has not a detectable face')
+            pos.append(i)
+        else:
             det = np.squeeze(bounding_boxes[0,0:4])
             bb = np.zeros(4, dtype=np.int32)
             bb[0] = np.maximum(det[0]-margin/2, 0)
@@ -106,21 +131,18 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
             bb[2] = np.minimum(det[2]+margin/2, img_size[1])
             bb[3] = np.minimum(det[3]+margin/2, img_size[0])
             cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
-        except:
-            print('image:'+image_paths[i]+'\nalready cropped or too small for further crop')
-            cropped =img'''
-        cropped =img
-        r,g,b = cv2.split(img)
-        img2 = cv2.merge([b,g,r])
-        cv2.imshow('image',img2)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
-        prewhitened = facenet.prewhiten(aligned)
-        cv2.imshow('imageoo',prewhitened)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        img_list[i] = prewhitened
+            aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
+            prewhitened = facenet.prewhiten(aligned)
+            '''r,g,b = cv2.split(prewhitened)
+            img2 = cv2.merge([b,g,r])
+            cv2.imshow('image',img2)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()'''
+            img_list[j] = prewhitened
+            j+=1
+    for x in pos:
+        image_paths.pop(x)
+    img_list=[x for x in img_list if x is not None]
     images = np.stack(img_list)
     return images
 
@@ -129,7 +151,7 @@ def parse_arguments(argv):
     
     parser.add_argument('model', type=str, 
         help='Could be either a directory containing the meta_file and ckpt_file or a model protobuf (.pb) file')
-    parser.add_argument('image_files', type=str, nargs='+', help='Images to compare')
+    parser.add_argument('output_dir', type=str, help='output directory')
     parser.add_argument('--image_size', type=int,
         help='Image size (height, width) in pixels.', default=160)
     parser.add_argument('--margin', type=int,
