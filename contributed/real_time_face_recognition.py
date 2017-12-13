@@ -27,7 +27,7 @@ Based on code from https://github.com/shanren7/real_time_face_recognition
 import argparse
 import sys
 import time
-
+import numpy as np
 import cv2
 
 import face
@@ -56,7 +56,7 @@ def main(args):
     frame_rate = 0
     frame_count = 0
 
-    video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture("D:\Movies/thalia.avi")
     face_recognition = face.Recognition()
     start_time = time.time()
 

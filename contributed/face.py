@@ -43,7 +43,7 @@ import facenet
 
 gpu_memory_fraction = 0.3
 facenet_model_checkpoint = "~/models/facenet/20170512-110547"
-classifier_model = "~/models/lfw_classifier.pkl"
+classifier_model = "C:/Users/user/models/lfw_classifier.pkl"
 debug = False
 
 
