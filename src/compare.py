@@ -43,7 +43,7 @@ def main(args):
     output_dir_vid = os.path.expanduser(args.output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
-    #frameGetter('C:/Users/computer science/Documents/GitHub/facenet-private/Cristiano Ronaldo.mp4',output_dir_vid)
+    #frameGetter('C:/Users/computer science/Downloads/Brad Pitt- Between Two Ferns with Zach Galifianakis.mp4',output_dir_vid)
     dataset = facenet.get_dataset(args.output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
     with tf.Graph().as_default():
@@ -136,7 +136,7 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
             prewhitened = facenet.prewhiten(aligned)
             '''r,g,b = cv2.split(prewhitened)
             img2 = cv2.merge([b,g,r])
-            cv2.imshow('image',img2)
+            cv2.imshow('image'+str(j),img2)   
             cv2.waitKey(0)
             cv2.destroyAllWindows()'''
             img_list[j] = prewhitened
