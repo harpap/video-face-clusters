@@ -39,10 +39,11 @@ import align.detect_face
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def main(args):
+    sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/Distance.txt', 'w+') #redirect output
     output_dir_vid = os.path.expanduser(args.output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
-    #frameGetter('C:/Users/user/Documents/GitHub/facenet-private/Cristiano Ronaldo.mp4',output_dir_vid)
+    #frameGetter('C:/Users/computer science/Documents/GitHub/facenet-private/Cristiano Ronaldo.mp4',output_dir_vid)
     dataset = facenet.get_dataset(args.output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
     with tf.Graph().as_default():
@@ -71,9 +72,9 @@ def main(args):
             
             # Print distance matrix
             print('Distance matrix')
-            print('    ', end='')
+            print('         ', end='')
             for i in range(nrof_images):
-                print('    %1d     ' % i, end='')
+                print('   %1d     ' % i, end='')
             print('')
             for i in range(nrof_images):
                 print('%1d  ' % i, end='')
@@ -164,4 +165,5 @@ if __name__ == '__main__':
     main(parse_arguments(sys.argv[1:]))
 #apo ta palia i mikroteri apostasi =0.7680
 #sto interview 0.2856
-#na ftiaksw programma na pairnei frames apo video kai na vriskei tis apostaseis
+#me k-means (mathisi xwris epivlepsi dld den exw etiketes) sta emb na lew poses omades thelw kai na kanei clustering
+#
