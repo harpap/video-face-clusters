@@ -27,6 +27,7 @@ from __future__ import division
 from __future__ import print_function
 
 from scipy import misc
+from sklearn.cluster import KMeans
 import tensorflow as tf
 import numpy as np
 import cv2
@@ -39,6 +40,7 @@ import align.detect_face
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def main(args):
+    global emb
     sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/Distance.txt', 'w+') #redirect output
     output_dir_vid = os.path.expanduser(args.output_dir + '/video')
     if not os.path.exists(output_dir_vid):
@@ -61,6 +63,7 @@ def main(args):
             # Run forward pass to calculate embeddings
             feed_dict = { images_placeholder: images, phase_train_placeholder:False }
             emb = sess.run(embeddings, feed_dict=feed_dict)
+            '''
             print('embeddings:')
             print(emb)
             nrof_images = len(dataset[0].image_paths)
@@ -81,8 +84,23 @@ def main(args):
                 for j in range(nrof_images):
                     dist = np.sqrt(np.sum(np.square(np.subtract(emb[i,:], emb[j,:]))))
                     print('  %1.4f  ' % dist, end='')
-                print('')
-            
+                print('')'''
+
+            #kmeans me sklearn
+            kmeans = KMeans(n_clusters=args.clusters, random_state=33,max_iter=1000000000,n_init =30, init='random',tol=0.00000001).fit(emb)
+            print (kmeans.labels_)
+            nrof_images = len(dataset[0].image_paths)
+            print('Images:')
+            for i in range(nrof_images):
+                print('%1d: %s' % (i, dataset[0].image_paths[i]))
+            print('')
+            for i in range(kmeans.n_clusters):
+                print ("omada : %d"% i)
+                for j in range(nrof_images):
+                    if (i==kmeans.labels_[j]):
+                        print (dataset[0].image_paths[j])
+            print (kmeans.inertia_)
+
 def frameGetter(vid,output_dir):
     frame_interval = 1000  # Number of frames after which to save
     frame_rate = 0
@@ -153,6 +171,7 @@ def parse_arguments(argv):
     parser.add_argument('model', type=str, 
         help='Could be either a directory containing the meta_file and ckpt_file or a model protobuf (.pb) file')
     parser.add_argument('output_dir', type=str, help='output directory')
+    parser.add_argument('clusters', type=int, help='number of faces')
     parser.add_argument('--image_size', type=int,
         help='Image size (height, width) in pixels.', default=160)
     parser.add_argument('--margin', type=int,
@@ -166,4 +185,3 @@ if __name__ == '__main__':
 #apo ta palia i mikroteri apostasi =0.7680
 #sto interview 0.2856
 #me k-means (mathisi xwris epivlepsi dld den exw etiketes) sta emb na lew poses omades thelw kai na kanei clustering
-#

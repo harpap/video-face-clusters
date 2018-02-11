@@ -1,38 +1,74 @@
 Creating networks and loading parameters
-image:C:\Users\computer science\Documents\GitHub\facenet-private\frames\video\frame-0.jpg
+image:C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-0.jpg
  has not a detectable face
-Model filename: C:\Users\computer science/models\facenet\20170512-110547/20170512-110547.pb
-embeddings:
-[[-0.05495374 -0.06608836  0.07444005 ..., -0.07841571 -0.05313071
-   0.05432739]
- [ 0.03728893 -0.03703274 -0.04329763 ..., -0.13667919 -0.00508885
-  -0.13539147]
- [-0.0240008  -0.12055939  0.10646854 ..., -0.15716732 -0.01544141
-   0.08837944]
- ..., 
- [-0.04867285 -0.13886666 -0.0358142  ..., -0.10792491 -0.04235591
-   0.06690674]
- [-0.05335094 -0.13282001 -0.05364437 ..., -0.11855114 -0.04532599
-   0.04722119]
- [-0.01605273 -0.03364118  0.00678973 ..., -0.04942596 -0.01889433
-   0.11097717]]
+image:C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-32000.jpg
+ has not a detectable face
+Model filename: C:\Users\user/models\facenet\20170512-110547/20170512-110547.pb
+[0 1 0 0 0 0 1 0 1 0 0 0 0 1 0 0 1 1 0 1 0 1 1 1 1 1 0 1 0 0 1]
 Images:
-0: C:\Users\computer science\Documents\GitHub\facenet-private\frames\video\frame-1000.jpg
-1: C:\Users\computer science\Documents\GitHub\facenet-private\frames\video\frame-2000.jpg
-2: C:\Users\computer science\Documents\GitHub\facenet-private\frames\video\frame-3000.jpg
-3: C:\Users\computer science\Documents\GitHub\facenet-private\frames\video\frame-4000.jpg
-4: C:\Users\computer science\Documents\GitHub\facenet-private\frames\video\frame-5000.jpg
-5: C:\Users\computer science\Documents\GitHub\facenet-private\frames\video\frame-6000.jpg
-6: C:\Users\computer science\Documents\GitHub\facenet-private\frames\video\frame-7000.jpg
-7: C:\Users\computer science\Documents\GitHub\facenet-private\frames\video\frame-8000.jpg
+0: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-1000.jpg
+1: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-10000.jpg
+2: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-11000.jpg
+3: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-12000.jpg
+4: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-13000.jpg
+5: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-14000.jpg
+6: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-15000.jpg
+7: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-16000.jpg
+8: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-17000.jpg
+9: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-18000.jpg
+10: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-19000.jpg
+11: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-2000.jpg
+12: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-20000.jpg
+13: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-21000.jpg
+14: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-22000.jpg
+15: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-23000.jpg
+16: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-24000.jpg
+17: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-25000.jpg
+18: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-26000.jpg
+19: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-27000.jpg
+20: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-28000.jpg
+21: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-29000.jpg
+22: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-3000.jpg
+23: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-30000.jpg
+24: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-31000.jpg
+25: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-32000.jpg
+26: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-5000.jpg
+27: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-6000.jpg
+28: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-7000.jpg
+29: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-8000.jpg
+30: C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-9000.jpg
 
-Distance matrix
-            0        1        2        3        4        5        6        7     
-0    0.0000    1.4292    0.7493    0.6653    1.3723    0.8291    1.3325    0.6399  
-1    1.4292    0.0000    1.2862    1.4949    1.4371    1.3823    0.8056    1.4011  
-2    0.7493    1.2862    0.0000    0.8623    1.3903    0.7994    1.2059    0.7341  
-3    0.6653    1.4949    0.8623    0.0000    1.2921    0.6812    1.3897    0.5554  
-4    1.3723    1.4371    1.3903    1.2921    0.0000    1.4252    1.4588    1.3410  
-5    0.8291    1.3823    0.7994    0.6812    1.4252    0.0000    1.3359    0.7464  
-6    1.3325    0.8056    1.2059    1.3897    1.4588    1.3359    0.0000    1.3096  
-7    0.6399    1.4011    0.7341    0.5554    1.3410    0.7464    1.3096    0.0000  
+omada : 0
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-1000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-11000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-12000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-13000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-14000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-16000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-18000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-19000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-2000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-20000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-22000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-23000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-26000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-28000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-5000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-7000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-8000.jpg
+omada : 1
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-10000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-15000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-17000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-21000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-24000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-25000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-27000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-29000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-3000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-30000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-31000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-32000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-6000.jpg
+C:\Users\user\Documents\GitHub\facenet-private\frames\video\frame-9000.jpg
+7.27989236727
