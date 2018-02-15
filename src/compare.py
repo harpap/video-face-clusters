@@ -103,12 +103,15 @@ def main(args):
                         print (dataset[0].image_paths[j])
             print (kmeans.inertia_)'''
             #silhouette
-            silhouette_avg = silhouette_score(emb, kmeans.labels_)
-            print(silhouette_avg)
+            #silhouette_avg = silhouette_score(emb, kmeans.labels_)
+            #print(silhouette_avg)
             #----------
             range_n_clusters = [2, 3, 4, 5, 6] #tha ithela n dokimasw oso megalwnoun taclusters
                                             #an xeirotereuoun ta apotelesmata n stamataeiautomata
+            cluster_labels = [None] * 5
+#prepei na ksekinane oi pinakes apo to 0 k oxi apo to 2 episis n skeftw kalutera pws n tous kanw initialise
             for n_clusters in range_n_clusters:
+                print (n_clusters)
                 # Create a subplot with 1 row and 2 columns
                 fig, (ax1, ax2) = plt.subplots(1, 2)
                 fig.set_size_inches(18, 7)
@@ -122,24 +125,24 @@ def main(args):
                 # Initialize the clusterer with n_clusters value and a random generator
                 # seed of 10 for reproducibility.
                 clusterer = KMeans(n_clusters=n_clusters, random_state=10)
-                cluster_labels = clusterer.fit_predict(emb)
+                cluster_labels[n_clusters] = clusterer.fit_predict(emb)
 
                 # The silhouette_score gives the average value for all the samples.
                 # This gives a perspective into the density and separation of the formed
                 # clusters
-                silhouette_avg = silhouette_score(emb, cluster_labels)
+                silhouette_avg[n_clusters] = silhouette_score(emb, cluster_labels[n_clusters])
                 print("For n_clusters =", n_clusters,
-                      "The average silhouette_score is :", silhouette_avg)
+                      "The average silhouette_score is :", silhouette_avg[n_clusters])
 
                 # Compute the silhouette scores for each sample
-                sample_silhouette_values = silhouette_samples(emb, cluster_labels)
+                sample_silhouette_values = silhouette_samples(emb, cluster_labels[n_clusters])
 
                 y_lower = 10
                 for i in range(n_clusters):
                     # Aggregate the silhouette scores for samples belonging to
                     # cluster i, and sort them
                     ith_cluster_silhouette_values = \
-                        sample_silhouette_values[cluster_labels == i]
+                        sample_silhouette_values[cluster_labels[n_clusters] == i]
 
                     ith_cluster_silhouette_values.sort()
 
@@ -162,13 +165,13 @@ def main(args):
                 ax1.set_ylabel("Cluster label")
 
                 # The vertical line for average silhouette score of all the values
-                ax1.axvline(x=silhouette_avg, color="red", linestyle="--")
+                ax1.axvline(x=silhouette_avg[n_clusters], color="red", linestyle="--")
 
                 ax1.set_yticks([])  # Clear the yaxis labels / ticks
                 ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
 
                 # 2nd Plot showing the actual clusters formed
-                colors = cm.spectral(cluster_labels.astype(float) / n_clusters)
+                colors = cm.spectral(cluster_labels[n_clusters].astype(float) / n_clusters)
                 ax2.scatter(emb[:, 0], emb[:, 1], marker='.', s=30, lw=0, alpha=0.7,
                             c=colors, edgecolor='k')
 
@@ -192,8 +195,9 @@ def main(args):
 
                 plt.show()
 
+
 def frameGetter(vid,output_dir):
-    frame_interval = 1000  # Number of frames after which to save
+    frame_interval = 500  # Number of frames after which to save
     frame_rate = 0
     frame_count = 0
     cap = cv2.VideoCapture(vid)
