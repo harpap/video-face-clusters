@@ -183,8 +183,8 @@ def main(args):
                                 s=50, edgecolor='k')
 
                 ax2.set_title("The visualization of the clustered data.")
-                ax2.set_xlabel("Feature space for the 1st feature")
-                ax2.set_ylabel("Feature space for the 2nd feature")
+                ax2.set_xlabel("Feature space for the 1st embedding")
+                ax2.set_ylabel("Feature space for the 2nd embedding")
 
                 plt.suptitle(("Silhouette analysis for KMeans clustering on sample data "
                               "with n_clusters = %d" % n_clusters),
