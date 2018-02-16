@@ -47,7 +47,7 @@ def main(args):
     output_dir_vid = os.path.expanduser(args.output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
-    #frameGetter('C:/Users/user/Documents/GitHub/facenet-private/Cristiano Ronaldo.mp4',output_dir_vid)
+    frameGetter('C:/Users/computer science/Downloads/Brad Pitt- Between Two Ferns with Zach Galifianakis.mp4',output_dir_vid)
     dataset = facenet.get_dataset(args.output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
     with tf.Graph().as_default():
@@ -193,15 +193,24 @@ def main(args):
                               "with n_clusters = %d" % n_clusters),
                              fontsize=14, fontweight='bold')
 
-                plt.show()
+                #plt.show()
                 j+=1
             #best cluster
             print('best number of clusters: ',silhouette_avg.index(max(silhouette_avg))+2)
+            '''print('Images:')
+            for i in range(nrof_images):
+                print('%1d: %s' % (i, dataset[0].image_paths[i]))
+            print('')
+            for i in range(kmeans.n_clusters):
+                print ("omada : %d"% i)
+                for j in range(nrof_images):
+                    if (i==kmeans.labels_[j]):
+                        print (dataset[0].image_paths[j])'''
 
 
 
 def frameGetter(vid,output_dir):
-    frame_interval = 500  # Number of frames after which to save
+    frame_interval = 100  # Number of frames after which to save
     frame_rate = 0
     frame_count = 0
     cap = cv2.VideoCapture(vid)
@@ -285,5 +294,5 @@ if __name__ == '__main__':
 #sto interview 0.2856
 #me k-means (mathisi xwris epivlepsi dld den exw etiketes) sta emb na lew poses omades thelw kai na kanei clustering
 
-#http://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_score.html
-#http://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html
+#na mpainei se ksexwristo directory ana omada (na fainete poia omada mpainei pou) kai na dokimasw alli sunenteuksi me pio polla proswpa
+#de xreiazonte ta plots
