@@ -193,11 +193,9 @@ def main(args):
                               "with n_clusters = %d" % n_clusters),
                              fontsize=14, fontweight='bold')
 
-                #plt.show()
+                plt.show()
                 j+=1
             #best cluster
-            print (silhouette_avg)
-            print (j)
             print('best number of clusters: ',silhouette_avg.index(max(silhouette_avg))+2)
 
 
