@@ -26,6 +26,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from shutil import copy
 from scipy import misc
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score
@@ -47,7 +48,7 @@ def main(args):
     output_dir_vid = os.path.expanduser(args.output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
-    frameGetter('C:/Users/computer science/Downloads/Brad Pitt- Between Two Ferns with Zach Galifianakis.mp4',output_dir_vid)
+    frameGetter('C:/Users/user/Documents/GitHub/facenet-private/Cristiano Ronaldo.mp4',output_dir_vid)
     dataset = facenet.get_dataset(args.output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
     with tf.Graph().as_default():
@@ -65,11 +66,9 @@ def main(args):
             # Run forward pass to calculate embeddings
             feed_dict = { images_placeholder: images, phase_train_placeholder:False }
             emb = sess.run(embeddings, feed_dict=feed_dict)
-            '''
-            print('embeddings:')
-            print(emb)
-            nrof_images = len(dataset[0].image_paths)
 
+            nrof_images = len(dataset[0].image_paths)
+            '''
             print('Images:')
             for i in range(nrof_images):
                 print('%1d: %s' % (i, dataset[0].image_paths[i]))
@@ -196,16 +195,18 @@ def main(args):
                 #plt.show()
                 j+=1
             #best cluster
-            print('best number of clusters: ',silhouette_avg.index(max(silhouette_avg))+2)
-            '''print('Images:')
-            for i in range(nrof_images):
-                print('%1d: %s' % (i, dataset[0].image_paths[i]))
-            print('')
-            for i in range(kmeans.n_clusters):
-                print ("omada : %d"% i)
-                for j in range(nrof_images):
-                    if (i==kmeans.labels_[j]):
-                        print (dataset[0].image_paths[j])'''
+            best_cl=silhouette_avg.index(max(silhouette_avg))
+            print('best number of clusters: ',best_cl+2)
+
+            for i in range(best_cl+2):
+                output_dir_cluster = os.path.expanduser(args.output_dir + '/omada '+str(i))
+                if not os.path.exists(output_dir_cluster):
+                    os.makedirs(output_dir_cluster)
+                #print ("omada : %d"% i)
+                for j in range(nrof_images): #twra me voithaei an uparxei to dir na petaei error meta omws th t valw tab mesa sto if not
+                    if (i==cluster_labels[best_cl][j]):
+                        copy(dataset[0].image_paths[j],output_dir_cluster)
+                        #print (dataset[0].image_paths[j])
 
 
 
@@ -249,7 +250,7 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
         if bounding_boxes.size==0:
             print('image:'+image_paths[i]+'\n has not a detectable face')
-            pos.append(i)
+            pos.append(image_paths[i])
         else:
             det = np.squeeze(bounding_boxes[0,0:4])
             bb = np.zeros(4, dtype=np.int32)
@@ -268,7 +269,7 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
             img_list[j] = prewhitened
             j+=1
     for x in pos:
-        image_paths.pop(x)
+        image_paths.remove(x)
     img_list=[x for x in img_list if x is not None]
     images = np.stack(img_list)
     return images
