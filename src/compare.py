@@ -48,7 +48,7 @@ def main(args):
     output_dir_vid = os.path.expanduser(args.output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
-    frameGetter('C:/Users/user/Documents/GitHub/facenet-private/Cristiano Ronaldo.mp4',output_dir_vid)
+    #frameGetter('C:/Users/computer science/Downloads/Tom Hardy.mp4',output_dir_vid)
     dataset = facenet.get_dataset(args.output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
     with tf.Graph().as_default():
@@ -88,10 +88,9 @@ def main(args):
                 print('')'''
 
             #kmeans me sklearn
-            kmeans = KMeans(n_clusters=args.clusters, random_state=33,max_iter=1000000000,n_init =30, init='random',tol=0.00000001).fit(emb)
+            '''kmeans = KMeans(n_clusters=args.clusters, random_state=33,max_iter=1000000000,n_init =30, init='random',tol=0.00000001).fit(emb)
             print (kmeans.labels_)
-            nrof_images = len(dataset[0].image_paths)
-            '''print('Images:')
+            print('Images:')
             for i in range(nrof_images):
                 print('%1d: %s' % (i, dataset[0].image_paths[i]))
             print('')
@@ -105,11 +104,11 @@ def main(args):
             #silhouette_avg = silhouette_score(emb, kmeans.labels_)
             #print(silhouette_avg)
             #----------
-            range_n_clusters = [2, 3, 4, 5, 6] #tha ithela n dokimasw oso megalwnoun taclusters
+            range_n_clusters = [2, 3, 4, 5, 6, 7, 8, 9, 10] #tha ithela n dokimasw oso megalwnoun taclusters
                                             #an xeirotereuoun ta apotelesmata n stamataeiautomata
             j=0
-            cluster_labels = [None] * 5
-            silhouette_avg = [None] * 5
+            cluster_labels = [None] * len(range_n_clusters)
+            silhouette_avg = [None] * len(range_n_clusters)
             for n_clusters in range_n_clusters:
                 # Create a subplot with 1 row and 2 columns
                 fig, (ax1, ax2) = plt.subplots(1, 2)
@@ -211,7 +210,7 @@ def main(args):
 
 
 def frameGetter(vid,output_dir):
-    frame_interval = 100  # Number of frames after which to save
+    frame_interval = 405  # Number of frames after which to save
     frame_rate = 0
     frame_count = 0
     cap = cv2.VideoCapture(vid)
@@ -295,5 +294,6 @@ if __name__ == '__main__':
 #sto interview 0.2856
 #me k-means (mathisi xwris epivlepsi dld den exw etiketes) sta emb na lew poses omades thelw kai na kanei clustering
 
-#na mpainei se ksexwristo directory ana omada (na fainete poia omada mpainei pou) kai na dokimasw alli sunenteuksi me pio polla proswpa
 #de xreiazonte ta plots
+#interface, datatabase me polla video
+#gia twra na valw pio polla video na to testarw oti douleuei kl
