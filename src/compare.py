@@ -44,11 +44,11 @@ import align.detect_face
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def main(args):
-    #sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/Distance.txt', 'w+') #redirect output
+    sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
     output_dir_vid = os.path.expanduser(args.output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
-    #frameGetter('C:/Users/computer science/Downloads/Tom Hardy.mp4',output_dir_vid)
+    #frameGetter('C:/Users/computer science/Downloads/MasterChefGR 2.mp4',output_dir_vid)
     dataset = facenet.get_dataset(args.output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
     with tf.Graph().as_default():
@@ -104,7 +104,7 @@ def main(args):
             #silhouette_avg = silhouette_score(emb, kmeans.labels_)
             #print(silhouette_avg)
             #----------
-            range_n_clusters = [2, 3, 4, 5, 6, 7, 8, 9, 10] #tha ithela n dokimasw oso megalwnoun taclusters
+            range_n_clusters = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] #tha ithela n dokimasw oso megalwnoun taclusters
                                             #an xeirotereuoun ta apotelesmata n stamataeiautomata
             j=0
             cluster_labels = [None] * len(range_n_clusters)
@@ -201,16 +201,22 @@ def main(args):
                 output_dir_cluster = os.path.expanduser(args.output_dir + '/omada '+str(i))
                 if not os.path.exists(output_dir_cluster):
                     os.makedirs(output_dir_cluster)
+                if not os.path.exists(output_dir_cluster+' (cropped)'):
+                    os.makedirs(output_dir_cluster+' (cropped)')
                 #print ("omada : %d"% i)
                 for j in range(nrof_images): #twra me voithaei an uparxei to dir na petaei error meta omws th t valw tab mesa sto if not
                     if (i==cluster_labels[best_cl][j]):
+                        r,g,b = cv2.split(images[j])
+                        img2 = cv2.merge([b*255,g*255,r*255])
+                        #path manipulation for imwrite
+                        outImWr=output_dir_cluster+' (cropped)'+'/'+os.path.basename(dataset[0].image_paths[j])
+                        cv2.imwrite(outImWr,img2)
                         copy(dataset[0].image_paths[j],output_dir_cluster)
-                        #print (dataset[0].image_paths[j])
 
 
 
 def frameGetter(vid,output_dir):
-    frame_interval = 405  # Number of frames after which to save
+    frame_interval = 300  # Number of frames after which to save
     frame_rate = 0
     frame_count = 0
     cap = cv2.VideoCapture(vid)
@@ -228,8 +234,8 @@ def frameGetter(vid,output_dir):
 
 def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
 
-    minsize = 20 # minimum size of face
-    threshold = [ 0.6, 0.7, 0.7 ]  # three steps's threshold
+    minsize = 30 # minimum size of face
+    threshold = [ 0.8, 0.9, 0.9 ]  # three steps's threshold
     factor = 0.709 # scale factor
     
     print('Creating networks and loading parameters')
@@ -296,4 +302,7 @@ if __name__ == '__main__':
 
 #de xreiazonte ta plots
 #interface, datatabase me polla video
-#gia twra na valw pio polla video na to testarw oti douleuei kl
+#na dw an mporw na diorthwsw to minsize kai to threshold wste na mn exei false positive kai na mn pairnei mikra proswpa
+#gia to detect_face:davidsandberg:
+#There are five landmarks detected by MTCNN and these are left eye, right eye, nose, left mouth corner, and right mouth corner.
+# It would not be straight forward to detect a larger number of landmarks.
