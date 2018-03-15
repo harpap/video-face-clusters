@@ -234,7 +234,7 @@ def frameGetter(vid,output_dir):
 
 def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
 
-    minsize = 30 # minimum size of face
+    minsize = 80 # minimum size of face
     threshold = [ 0.8, 0.9, 0.9 ]  # three steps's threshold
     factor = 0.709 # scale factor
     
@@ -302,7 +302,11 @@ if __name__ == '__main__':
 
 #de xreiazonte ta plots
 #interface, datatabase me polla video
-#na dw an mporw na diorthwsw to minsize kai to threshold wste na mn exei false positive kai na mn pairnei mikra proswpa
+
 #gia to detect_face:davidsandberg:
 #There are five landmarks detected by MTCNN and these are left eye, right eye, nose, left mouth corner, and right mouth corner.
 # It would not be straight forward to detect a larger number of landmarks.
+
+#diorthwsa ta false detect k ta minsize
+#PREPEI na to testarw k sta alla video
+#na sigourepsw oti den mou aporriptei "kala" proswpa
