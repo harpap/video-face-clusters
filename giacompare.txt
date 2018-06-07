@@ -3,7 +3,7 @@ python src/compare.py ~/models\facenet\20170512-110547/20170512-110547.pb ~/data
 python src/compare.py ~/models\facenet\20170512-110547/20170512-110547.pb ~/datasets/lfw/test_my_img_160/Aaron_Guiel/Aaron_Guiel_0001.png ~\datasets\lfw\test_my_img_160\Carlos_Ghosn/Carlos_Ghosn_0001.png ~\datasets\lfw\test_my_img_160\messi/messiclose_0.png ~\datasets\lfw\test_my_img_160\messi/messifar_0.png ~\datasets\lfw\test_my_img_160\rmboth/ronaldomessi_0.png  ~\datasets\lfw\test_my_img_160\rmboth/ronaldomessi_1.png ~\datasets\lfw\test_my_img_160\ronaldo/Ronaldoclose_0.png ~\datasets\lfw\test_my_img_160\ronaldo/ronaldofar_0.png
 
 
-python src/compare.py ~/models\facenet\20170512-110547/20170512-110547.pb C:\Users\user\Documents\GitHub\facenet-private\frames 2
+python src/compare.py ~/models\facenet\20170512-110547/20170512-110547.pb C:\Users\Harris\Documents\GitHub\facenet-private\frames 2
 
 PC SXOLI:
 python src/compare.py ~/models\facenet\20170512-110547/20170512-110547.pb "C:\Users\computer science\Documents\GitHub\facenet-private\frames" 2
