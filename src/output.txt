@@ -1,0 +1,40 @@
+Creating networks and loading parameters
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-0.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-15500.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-24500.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-25500.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-32000.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-500.jpg
+ has not a detectable face
+Model filename: C:\Users\Harris/models\facenet\20170512-110547/20170512-110547.pb
+For n_clusters = 2 The average silhouette_score is : 0.5327287
+For n_clusters = 3 The average silhouette_score is : 0.40726697
+For n_clusters = 4 The average silhouette_score is : 0.26145914
+For n_clusters = 5 The average silhouette_score is : 0.12955682
+For n_clusters = 6 The average silhouette_score is : 0.14189082
+For n_clusters = 7 The average silhouette_score is : 0.10610264
+For n_clusters = 8 The average silhouette_score is : 0.12528566
+For n_clusters = 9 The average silhouette_score is : 0.1289797
+For n_clusters = 10 The average silhouette_score is : 0.11822845
+For n_clusters = 11 The average silhouette_score is : 0.12086462
+For n_clusters = 12 The average silhouette_score is : 0.13827682
+best number of clusters:  2
+[ 0.35200354  0.22732653  0.39128247  0.01098677  0.15809342  0.44549122
+  0.29524106  0.32056162  0.4032782   0.0575813   0.24278642  0.25007167
+  0.18227054  0.42655897  0.08569758  0.05290187  0.31890962  0.4010827
+  0.33784822  0.45016712  0.36810148  0.4685587   0.3738522   0.30467144
+  0.2528452   0.33252588  0.39475     0.17255977  0.38341427  0.20178786
+  0.2499555  -0.13449988  0.3168409   0.3436987   0.29077798  0.27180636
+  0.20425296  0.05636825  0.34430012  0.24734654  0.3604093   0.23476475
+  0.23200934  0.1563362   0.11813328  0.23851728  0.41955277  0.16347317
+  0.10519856  0.3816695  -0.05006925  0.21336153  0.3443953   0.45002082
+ -0.05121483  0.31090555  0.37385094  0.22105087  0.34967017]
+
+
+[1 0 1 1 0 1 1 1 1 0 0 0 0 1 0 0 1 1 1 1 1 1 1 1 0 1 1 0 1 0 0 1 0 1 0 0 1
+ 1 1 0 1 0 0 0 0 0 1 0 0 1 1 0 1 1 1 1 1 0 1]
