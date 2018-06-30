@@ -51,76 +51,86 @@ def main(args):
     #frame_getter('C:/Users/computer science/Downloads/MasterChefGR 2.mp4',output_dir_vid)
     dataset = facenet.get_dataset(args.output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
-    with tf.Graph().as_default():
-
-        with tf.Session() as sess:
-      
-            # Load the model
-            facenet.load_model(args.model)
+    emb = run_forward_pass(images, args.model)
     
+    #silhouette
+    #----------
+    cluster_labels, silhouette_avg, sample_silhouette_values, best_cl = kMSilhouette(emb)
+    #fix outliers
+    outl_cluster_sum, sum_of_images_in_cluster, difference = outliers(cluster_labels[best_cl], best_cl+2, sample_silhouette_values[best_cl], 
+                                                                                            silhouette_avg[best_cl], args.outlierConstant)
+    nrof_images = len(dataset[0].image_paths)
+    for i in range(best_cl+2):
+        for j in range(nrof_images):
+            if (outl_cluster_sum[i]/sum_of_images_in_cluster[i]) >= 0.7:
+                print ("periptwsi 1 gia to cluster: " + str(i))
+                return_val = 1
+                #k th gurisw se poia thesi ta frames einai
+            elif outl_cluster_sum[i]==(1 or 2):
+                return_val = 2
+                #2-means 
+    
+    nrof_images = len(dataset[0].image_paths)
+    output_dir_cluster = [None] * (best_cl+2)
+    for i in range(best_cl+2):
+        output_dir_cluster[i] = os.path.expanduser(args.output_dir + '/omada '+str(i))
+        if not os.path.exists(output_dir_cluster[i]):
+            os.makedirs(output_dir_cluster[i])
+        if not os.path.exists(output_dir_cluster[i]+' (cropped)'):
+            os.makedirs(output_dir_cluster[i]+' (cropped)')
+    for j in range(nrof_images):
+        r,g,b = cv2.split(images[j])
+        img2 = cv2.merge([b*255,g*255,r*255])
+        #path manipulation for imwrite
+        outImWr=output_dir_cluster[cluster_labels[best_cl][j]]+' (cropped)'+'/'+os.path.basename(dataset[0].image_paths[j])
+        cv2.imwrite(outImWr,img2)
+        copy(dataset[0].image_paths[j],output_dir_cluster[cluster_labels[best_cl][j]])
+    print(sample_silhouette_values[2])
+    print('\n')
+    print(cluster_labels[best_cl])
+
+
+
+def frame_getter(vid, output_dir, frame):
+    cap = cv2.VideoCapture(vid)
+    if frame is None:
+        frame_interval = 300  # Number of frames after which to save
+        frame_count = 0
+        while(cap.isOpened()):
+            ret, frame = cap.read()
+            if ret==True:
+                if (frame_count % frame_interval) == 0:
+                    cv2.imwrite(output_dir+ "/frame-" + str(frame_count) + ".jpg", frame)
+                frame_count+=1
+            else:
+                break
+    else:
+        total_frames = cap.get(7) #to thelw g an einai sto telos
+        cap.set(1, frame-10)
+        for i in range(9):
+            ret, frame_read = cap.read()
+            cv2.imwrite(output_dir+ "/frame-" + str(cap.get(1)-1) + ".jpg", frame_read)
+        if total_frames > frame + 10:
+            cap.read()              #apla proxwraei g na mn ksanagrapsei tin idia eikona
+            for i in range(9):
+                ret, frame_read = cap.read()
+                cv2.imwrite(output_dir+ "/frame-" + str(cap.get(1)-1) + ".jpg", frame_read)
+            # kai meta ksanatrexw ooolo apo tin arxi g ti 1i periptwsi
+    # When everything is done, release the capture
+    cap.release()
+    
+def run_forward_pass(images, model):
+    with tf.Graph().as_default():
+        with tf.Session() as sess:
+            # Load the model
+            facenet.load_model(model)
             # Get input and output tensors
             images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
             embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
             phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
-
             # Run forward pass to calculate embeddings
             feed_dict = { images_placeholder: images, phase_train_placeholder:False }
-            emb = sess.run(embeddings, feed_dict=feed_dict)
-
-            nrof_images = len(dataset[0].image_paths)
-
-            
-            #silhouette
-            #----------
-            cluster_labels, silhouette_avg, sample_silhouette_values, best_cl = kMSilhouette(emb)
-            
-            #outliers(cluster_labels[best_cl], best_cl+2, sample_silhouette_values[best_cl], silhouette_avg[best_cl], args.outlierConstant)
-            
-            #den einai veltisto!!!
-            output_dir_cluster = [None] * (best_cl+2)
-            for i in range(best_cl+2):
-                output_dir_cluster[i] = os.path.expanduser(args.output_dir + '/omada '+str(i))
-                if not os.path.exists(output_dir_cluster[i]):
-                    os.makedirs(output_dir_cluster[i])
-                if not os.path.exists(output_dir_cluster[i]+' (cropped)'):
-                    os.makedirs(output_dir_cluster[i]+' (cropped)')
-            
-            for j in range(nrof_images):
-                r,g,b = cv2.split(images[j])
-                img2 = cv2.merge([b*255,g*255,r*255])
-                #path manipulation for imwrite
-                outImWr=output_dir_cluster[cluster_labels[best_cl][j]]+' (cropped)'+'/'+os.path.basename(dataset[0].image_paths[j])
-                cv2.imwrite(outImWr,img2)
-                copy(dataset[0].image_paths[j],output_dir_cluster[cluster_labels[best_cl][j]])
-                '''for j in range(nrof_images): #twra me voithaei an uparxei to dir na petaei error meta omws th t valw tab mesa sto if not
-                    if (i==cluster_labels[best_cl][j]):
-                        r,g,b = cv2.split(images[j])
-                        img2 = cv2.merge([b*255,g*255,r*255])
-                        #path manipulation for imwrite
-                        outImWr=output_dir_cluster+' (cropped)'+'/'+os.path.basename(dataset[0].image_paths[j])
-                        cv2.imwrite(outImWr,img2)
-                        copy(dataset[0].image_paths[j],output_dir_cluster)'''
-            print(sample_silhouette_values[2])
-            print('\n')
-            print(cluster_labels[best_cl])
-
-
-
-def frame_getter(vid,output_dir):
-    frame_interval = 300  # Number of frames after which to save
-    frame_rate = 0
-    frame_count = 0
-    cap = cv2.VideoCapture(vid)
-    while(cap.isOpened()):
-        ret, frame = cap.read()
-        if ret==True:
-            if (frame_count % frame_interval) == 0:
-                cv2.imwrite(output_dir+ "/frame-" + str(frame_count) + ".jpg", frame)
-            frame_count+=1
-        else:
-            break
-    # When everything is done, release the capture
-    cap.release()
+            return sess.run(embeddings, feed_dict=feed_dict)
 
 def kMSilhouette(emb):
     range_n_clusters = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] #tha ithela n dokimasw oso megalwnoun taclusters
@@ -151,10 +161,34 @@ def kMSilhouette(emb):
     return cluster_labels, silhouette_avg, sample_silhouette_values, best_cl
     
 def outliers(cluster_labels, max_clusters, sample_silhouette_values, silhouette_avg, N):
+    nrof_images = len(cluster_labels)
+    difference = [0] * (nrof_images)
+    outl_sum = 0
+    outl_cluster_sum = [0] * (max_clusters)   #auta
+    sum_of_images_in_cluster = [0] * (max_clusters) #mallon de xreiazonte pinakes n einai
+    return_val = 0
+    for i in range(nrof_images):
+        if sample_silhouette_values[i] < silhouette_avg - N :
+            difference[i] = (silhouette_avg - N) - sample_silhouette_values[i]
+            outl_sum += 1
+    
     for i in range(max_clusters):
-        if sample_silhouette_values[i] < N :
-            return
-    return
+        for j in range(nrof_images):
+            if (i==cluster_labels[j]):
+                sum_of_images_in_cluster[i] += 1
+                if difference[j]!=0:
+                    outl_cluster_sum[i] += 1
+        if (outl_cluster_sum[i]/sum_of_images_in_cluster[i]) >= 0.7:
+            print ("periptwsi 1 gia to cluster: " + str(i))
+            return_val = 1
+            #k th gurisw se poia thesi ta frames einai
+        elif outl_cluster_sum[i]==(1 or 2):
+            return_val = 2
+            #2-means
+        print (outl_cluster_sum[i])
+        print (sum_of_images_in_cluster)
+    return outl_cluster_sum, sum_of_images_in_cluster, difference
+
 
 def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
 
