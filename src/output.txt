@@ -24,6 +24,10 @@ For n_clusters = 10 The average silhouette_score is : 0.11822845
 For n_clusters = 11 The average silhouette_score is : 0.12086462
 For n_clusters = 12 The average silhouette_score is : 0.13827682
 best number of clusters:  2
+0
+[25, 0]
+0
+[25, 34]
 [ 0.35200354  0.22732653  0.39128247  0.01098677  0.15809342  0.44549122
   0.29524106  0.32056162  0.4032782   0.0575813   0.24278642  0.25007167
   0.18227054  0.42655897  0.08569758  0.05290187  0.31890962  0.4010827

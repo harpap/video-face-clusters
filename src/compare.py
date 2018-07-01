@@ -48,7 +48,8 @@ def main(args):
     output_dir_vid = os.path.expanduser(args.output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
-    #frame_getter('C:/Users/computer science/Downloads/MasterChefGR 2.mp4',output_dir_vid)
+    video_path = 'C:/Users/Harris/Documents/GitHub/facenet-private/Cristiano Ronaldo.mp4'
+    #frame_getter(video_path,output_dir_vid)
     dataset = facenet.get_dataset(args.output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
     emb = run_forward_pass(images, args.model)
@@ -57,20 +58,35 @@ def main(args):
     #----------
     cluster_labels, silhouette_avg, sample_silhouette_values, best_cl = kMSilhouette(emb)
     #fix outliers
-    outl_cluster_sum, sum_of_images_in_cluster, difference = outliers(cluster_labels[best_cl], best_cl+2, sample_silhouette_values[best_cl], 
-                                                                                            silhouette_avg[best_cl], args.outlierConstant)
+    outlier_kind, two_m_clusters = outliers(cluster_labels[best_cl], best_cl+2, sample_silhouette_values[best_cl], 
+                                                                      silhouette_avg[best_cl], args.outlierConstant, video_path,
+                                                                      output_dir_vid, dataset[0].image_paths)
     nrof_images = len(dataset[0].image_paths)
-    for i in range(best_cl+2):
-        for j in range(nrof_images):
-            if (outl_cluster_sum[i]/sum_of_images_in_cluster[i]) >= 0.7:
-                print ("periptwsi 1 gia to cluster: " + str(i))
-                return_val = 1
-                #k th gurisw se poia thesi ta frames einai
-            elif outl_cluster_sum[i]==(1 or 2):
-                return_val = 2
-                #2-means 
+    if outlier_kind==1:
+        dataset = facenet.get_dataset(args.output_dir)
+        images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
+        emb = run_forward_pass(images, args.model)
+        cluster_labels, silhouette_avg, sample_silhouette_values, best_cl = kMSilhouette(emb)
+    elif two_m_clusters:        #an exei stoixeia mesa
+        dataset = facenet.get_dataset(args.output_dir)
+        images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
+        emb = run_forward_pass(images, args.model)
+        #de douleuei o tropos p th thelame opote to paw opws prin
+        cluster_labels, silhouette_avg, sample_silhouette_values, best_cl = kMSilhouette(emb)
+        '''emb2=[]
+        while two_m_clusters:
+            two_m_cluster = two_m_clusters.pop()
+            for j in range(nrof_images):
+                if (two_m_cluster == cluster_labels[j]):   #palio label, xalaei logo twn kainouriwn eikonwn!!
+                    emb2.append(emb[j])
+            clusterer = KMeans(n_clusters=2, random_state=10)
+            cluster_labels_2 = clusterer.fit_predict(emb2)
+            for j in range(nrof_images):
+                if (two_m_cluster == cluster_labels[j]):
+                    if cluster_labels_2.pop(0) == 1:
+                        cluster_labels[j] = best_cl+3    #allazw mono gia to 2o label gt to 1o de me noiazei n meinei idio
+    '''
     
-    nrof_images = len(dataset[0].image_paths)
     output_dir_cluster = [None] * (best_cl+2)
     for i in range(best_cl+2):
         output_dir_cluster[i] = os.path.expanduser(args.output_dir + '/omada '+str(i))
@@ -106,15 +122,15 @@ def frame_getter(vid, output_dir, frame):
                 break
     else:
         total_frames = cap.get(7) #to thelw g an einai sto telos
-        cap.set(1, frame-10)
-        for i in range(9):
+        cap.set(1, frame-2)
+        for i in range(2):
             ret, frame_read = cap.read()
-            cv2.imwrite(output_dir+ "/frame-" + str(cap.get(1)-1) + ".jpg", frame_read)
-        if total_frames > frame + 10:
+            cv2.imwrite(output_dir+ "/frame-" + str(int(cap.get(1)-1)) + ".jpg", frame_read)
+        if total_frames > frame + 2:
             cap.read()              #apla proxwraei g na mn ksanagrapsei tin idia eikona
-            for i in range(9):
+            for i in range(2):
                 ret, frame_read = cap.read()
-                cv2.imwrite(output_dir+ "/frame-" + str(cap.get(1)-1) + ".jpg", frame_read)
+                cv2.imwrite(output_dir+ "/frame-" + str(int(cap.get(1)-1)) + ".jpg", frame_read)
             # kai meta ksanatrexw ooolo apo tin arxi g ti 1i periptwsi
     # When everything is done, release the capture
     cap.release()
@@ -160,16 +176,17 @@ def kMSilhouette(emb):
     print('best number of clusters: ',best_cl+2)
     return cluster_labels, silhouette_avg, sample_silhouette_values, best_cl
     
-def outliers(cluster_labels, max_clusters, sample_silhouette_values, silhouette_avg, N):
+def outliers(cluster_labels, max_clusters, sample_silhouette_values, silhouette_avg, N, video_path, output_dir_vid, image_paths):
     nrof_images = len(cluster_labels)
     difference = [0] * (nrof_images)
     outl_sum = 0
     outl_cluster_sum = [0] * (max_clusters)   #auta
     sum_of_images_in_cluster = [0] * (max_clusters) #mallon de xreiazonte pinakes n einai
-    return_val = 0
+    return_val1 = 0
+    return_val2 = []
     for i in range(nrof_images):
         if sample_silhouette_values[i] < silhouette_avg - N :
-            difference[i] = (silhouette_avg - N) - sample_silhouette_values[i]
+            difference[i] = silhouette_avg - sample_silhouette_values[i]
             outl_sum += 1
     
     for i in range(max_clusters):
@@ -177,17 +194,21 @@ def outliers(cluster_labels, max_clusters, sample_silhouette_values, silhouette_
             if (i==cluster_labels[j]):
                 sum_of_images_in_cluster[i] += 1
                 if difference[j]!=0:
+                    #vazw poia frames einai
+                    _,video = image_paths[j].split('video')
+                    _,start_of_frame = video.split('-')
+                    frame_nr,_ = start_of_frame.split('.')
+                    frame_getter(video_path, output_dir_vid, int(frame_nr)) #pare epipleon frames
                     outl_cluster_sum[i] += 1
         if (outl_cluster_sum[i]/sum_of_images_in_cluster[i]) >= 0.7:
             print ("periptwsi 1 gia to cluster: " + str(i))
-            return_val = 1
-            #k th gurisw se poia thesi ta frames einai
-        elif outl_cluster_sum[i]==(1 or 2):
-            return_val = 2
+            return_val1 = 1
+        elif outl_cluster_sum[i]==1:
+            return_val2.append(i)
             #2-means
         print (outl_cluster_sum[i])
         print (sum_of_images_in_cluster)
-    return outl_cluster_sum, sum_of_images_in_cluster, difference
+    return return_val1 ,return_val2
 
 
 def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
@@ -243,7 +264,7 @@ def parse_arguments(argv):
     parser.add_argument('model', type=str, 
         help='Could be either a directory containing the meta_file and ckpt_file or a model protobuf (.pb) file')
     parser.add_argument('output_dir', type=str, help='output directory')
-    parser.add_argument('outlierConstant', type=float, help='Constant for fixing outliers')
+    parser.add_argument('--outlierConstant', type=float, help='Constant for fixing outliers. The bigger the harder to find outlier', default=0.45)
     parser.add_argument('--image_size', type=int,
         help='Image size (height, width) in pixels.', default=160)
     parser.add_argument('--margin', type=int,
@@ -269,5 +290,5 @@ if __name__ == '__main__':
 #PREPEI na to testarw k sta alla video
 #na sigourepsw oti den mou aporriptei "kala" proswpa
 
-
-#
+#gia:   sample_silhouette_values[j] = silhouette_samples(emb, cluster_labels[j])
+#The best value is 1 and the worst value is -1. Values near 0 indicate overlapping clusters.
