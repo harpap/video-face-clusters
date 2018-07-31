@@ -1,44 +1,268 @@
 Creating networks and loading parameters
 image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-0.jpg
  has not a detectable face
-image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-15500.jpg
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-1200.jpg
  has not a detectable face
-image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-24500.jpg
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-15900.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-17700.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-18000.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-18300.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-18600.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-22500.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-2400.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-25200.jpg
  has not a detectable face
 image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-25500.jpg
  has not a detectable face
-image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-32000.jpg
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-25800.jpg
  has not a detectable face
-image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-500.jpg
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-26100.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-26400.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-27600.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-3000.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-30600.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-30900.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-31200.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-3300.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-3900.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-39900.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-41700.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-4500.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-5100.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-5400.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-7800.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-8400.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-9000.jpg
  has not a detectable face
 Model filename: C:\Users\Harris/models\facenet\20170512-110547/20170512-110547.pb
-For n_clusters = 2 The average silhouette_score is : 0.5327287
-For n_clusters = 3 The average silhouette_score is : 0.40726697
-For n_clusters = 4 The average silhouette_score is : 0.26145914
-For n_clusters = 5 The average silhouette_score is : 0.12955682
-For n_clusters = 6 The average silhouette_score is : 0.14189082
-For n_clusters = 7 The average silhouette_score is : 0.10610264
-For n_clusters = 8 The average silhouette_score is : 0.12528566
-For n_clusters = 9 The average silhouette_score is : 0.1289797
-For n_clusters = 10 The average silhouette_score is : 0.11822845
-For n_clusters = 11 The average silhouette_score is : 0.12086462
-For n_clusters = 12 The average silhouette_score is : 0.13827682
-best number of clusters:  2
-0
-[25, 0]
-0
-[25, 34]
-[ 0.35200354  0.22732653  0.39128247  0.01098677  0.15809342  0.44549122
-  0.29524106  0.32056162  0.4032782   0.0575813   0.24278642  0.25007167
-  0.18227054  0.42655897  0.08569758  0.05290187  0.31890962  0.4010827
-  0.33784822  0.45016712  0.36810148  0.4685587   0.3738522   0.30467144
-  0.2528452   0.33252588  0.39475     0.17255977  0.38341427  0.20178786
-  0.2499555  -0.13449988  0.3168409   0.3436987   0.29077798  0.27180636
-  0.20425296  0.05636825  0.34430012  0.24734654  0.3604093   0.23476475
-  0.23200934  0.1563362   0.11813328  0.23851728  0.41955277  0.16347317
-  0.10519856  0.3816695  -0.05006925  0.21336153  0.3443953   0.45002082
- -0.05121483  0.31090555  0.37385094  0.22105087  0.34967017]
+For n_clusters = 2 The average silhouette_score is : 0.17160912
+For n_clusters = 3 The average silhouette_score is : 0.18330863
+For n_clusters = 4 The average silhouette_score is : 0.21204895
+For n_clusters = 5 The average silhouette_score is : 0.23992068
+For n_clusters = 6 The average silhouette_score is : 0.25443193
+For n_clusters = 7 The average silhouette_score is : 0.28363088
+For n_clusters = 8 The average silhouette_score is : 0.30345455
+For n_clusters = 9 The average silhouette_score is : 0.30798173
+For n_clusters = 10 The average silhouette_score is : 0.27461225
+For n_clusters = 11 The average silhouette_score is : 0.30244055
+For n_clusters = 12 The average silhouette_score is : 0.31123814
+best number of clusters:  12
 
 
-[1 0 1 1 0 1 1 1 1 0 0 0 0 1 0 0 1 1 1 1 1 1 1 1 0 1 1 0 1 0 0 1 0 1 0 0 1
- 1 1 0 1 0 0 0 0 0 1 0 0 1 1 0 1 1 1 1 1 0 1]
+0
+17
+
+
+
+
+0
+24
+
+
+
+
+0
+16
+
+
+
+
+0
+1
+
+
+periptwsi 1 gia to cluster: 4
+
+
+13
+13
+
+
+periptwsi 1 gia to cluster: 5
+
+
+14
+14
+
+
+periptwsi 1 gia to cluster: 6
+
+
+9
+9
+
+
+
+
+0
+8
+
+
+
+
+0
+5
+
+
+
+
+0
+7
+
+
+
+
+0
+3
+
+
+
+
+0
+7
+
+
+Creating networks and loading parameters
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-0.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-1200.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-15900.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-17700.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-18000.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-18300.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-18600.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-22500.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-23102.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-2400.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-25200.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-25500.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-25800.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-26100.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-26400.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-27600.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-3000.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-30600.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-30900.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-31200.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-3300.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-3900.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-39900.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-41700.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-4500.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-5100.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-5400.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-7800.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-8400.jpg
+ has not a detectable face
+image:C:\Users\Harris\Documents\GitHub\facenet-private\frames\video\frame-9000.jpg
+ has not a detectable face
+Model filename: C:\Users\Harris/models\facenet\20170512-110547/20170512-110547.pb
+For n_clusters = 2 The average silhouette_score is : 0.1917681
+For n_clusters = 3 The average silhouette_score is : 0.23537417
+For n_clusters = 4 The average silhouette_score is : 0.27018696
+For n_clusters = 5 The average silhouette_score is : 0.29783595
+For n_clusters = 6 The average silhouette_score is : 0.32293794
+For n_clusters = 7 The average silhouette_score is : 0.33955237
+For n_clusters = 8 The average silhouette_score is : 0.3224618
+For n_clusters = 9 The average silhouette_score is : 0.34164828
+For n_clusters = 10 The average silhouette_score is : 0.3232691
+For n_clusters = 11 The average silhouette_score is : 0.26463312
+For n_clusters = 12 The average silhouette_score is : 0.32937598
+best number of clusters:  9
+
+
+[0.3835485  0.37685603 0.37545225 0.36927834 0.35886845 0.38400722
+ 0.4512049  0.45674652 0.5362749  0.5429015  0.91748387 0.4544772
+ 0.4327451  0.5842491  0.45192653 0.43254387 0.5113158  0.45901942
+ 0.51361585 0.4974899  1.0093169  0.5040655  1.0518849  0.41036102
+ 1.0207008  0.6538039  0.5382252  0.516267   0.5646586  0.5040495
+ 0.5283282  0.6144498  0.635592   0.71733654 0.79047465 0.8757982
+ 0.66687536 0.69954336 0.6665948  0.7605771  0.6297043  0.5304895
+ 0.7483375  0.7345303  0.7026673  0.71393883 0.74287814 0.56147367
+ 0.5768465  0.5654204  0.5565776  0.58410174 0.45011866 0.43238828
+ 0.44057825 0.4482636  0.469806   0.4980744  0.48345798 0.51019734
+ 0.47531664 0.5041702  0.4714942  0.5655005  0.5338894  0.530395
+ 0.5003526  0.50149596 0.4718995  0.50145626 0.5197001  0.5297201
+ 0.52062374 0.5829463  0.59160846 0.48654783 0.6714267  0.4577927
+ 0.45757288 0.5522466  0.55237263 0.49224254 0.505398   0.5144271
+ 0.60405034 0.6356709  0.6061557  0.59571904 0.6217843  0.56798905
+ 0.5998014  0.58752745 0.6082417  0.6130462  0.49167728 0.8678662
+ 0.65450114 0.91346353 1.1326032  0.66065234 0.8362516  0.8853498
+ 0.92869514 1.1455123  0.7716324  0.56975275 0.47273827 0.51869893
+ 0.83279055 0.7394394  0.6658135  0.59424096 0.5822053  0.9015818
+ 0.58747286 0.59577835 0.48814732 0.438324   0.4577602  0.42269734
+ 0.4256527  0.43431225 0.7269511  0.6557318  0.83001053 0.6829461
+ 0.43243006 0.42077643 0.4293843  0.43794045 0.44281936 0.4573269
+ 0.57755    1.0264575  0.5942476  0.4200177  1.030023   0.83754414
+ 0.42734492 0.4246835  0.48002797 0.49303284 0.5008632  0.52803814
+ 0.52940595 0.5253519  0.5418244  0.61249775 0.7544507  0.4985125
+ 0.46991915 0.40839815 0.386151   0.3832185  0.39263377 0.3686551
+ 0.4978098  0.53430605 0.5029826  0.5763084  0.55382466 0.4862533
+ 0.4136009  0.4751812  0.4020349  0.37349054 0.3360271  0.44177285
+ 0.45867404 0.46914402 0.43542302 0.46572107 0.42433557 0.41657317
+ 0.4245847  0.42878732 0.44523573 0.98981243 0.6312131  0.60389173
+ 0.62182873 0.60916626 0.64319295 0.9299927  0.45022935 0.43351367
+ 0.43969938 0.41928238 0.4210532  0.3882757  0.3637997  0.35164845
+ 0.36309883 0.3586409  0.3565021  0.40796322 0.41606748 0.40617537
+ 0.40768364 0.40624493 0.47446576 0.7512832  0.48043334 0.48141837
+ 0.8756112  0.46726635 0.46543342 0.46825033 0.4603039  0.47679082
+ 0.43991497 0.45612755 0.4021306  1.0210534  0.60364574 0.57909584
+ 0.5844932  0.5084441  0.5624107  0.8796784  0.53743035 0.45633957
+ 0.58771074 0.58811665 0.59462833 0.54017043 0.5922792  0.588419
+ 0.3896229  0.5143061  0.5452935  0.46820113 0.43016505 0.5234191
+ 0.52519894 0.5258742  0.5520861  0.5505442  0.86592937 0.4742934
+ 0.4575775  0.44214144 0.44591984 0.46390125 0.43879738 0.4014343
+ 0.3864558  0.36039144 0.37302148 0.5802299  0.42100307 0.48924083
+ 0.56611574 0.6075935  0.4810621  0.6353511  0.39267224 0.61296374
+ 0.466995   0.38178256 0.38198796 0.5445454  0.50247455 0.8625184
+ 0.5404534  0.48924217 0.49114785]

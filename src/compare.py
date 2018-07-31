@@ -44,11 +44,11 @@ import align.detect_face
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def main(args):
-    sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
+    #sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
     output_dir_vid = os.path.expanduser(args.output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
-    video_path = 'C:/Users/Harris/Documents/GitHub/facenet-private/Cristiano Ronaldo.mp4'
+    video_path = 'C:/Users/Harris/Desktop/MasterChefnew1.mp4'
     #frame_getter(video_path,output_dir_vid)
     dataset = facenet.get_dataset(args.output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
@@ -56,23 +56,22 @@ def main(args):
     
     #silhouette
     #----------
-    cluster_labels, silhouette_avg, sample_silhouette_values, best_cl = kMSilhouette(emb)
+    cluster_labels, variance, best_cl = kMSilhouette(emb)
     #fix outliers
-    outlier_kind, two_m_clusters = outliers(cluster_labels[best_cl], best_cl+2, sample_silhouette_values[best_cl], 
-                                                                      silhouette_avg[best_cl], args.outlierConstant, video_path,
+    outlier_kind, two_m_clusters = outliers(cluster_labels, best_cl+2, variance, args.outlierConstant, video_path,
                                                                       output_dir_vid, dataset[0].image_paths)
     nrof_images = len(dataset[0].image_paths)
     if outlier_kind==1:
         dataset = facenet.get_dataset(args.output_dir)
         images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
         emb = run_forward_pass(images, args.model)
-        cluster_labels, silhouette_avg, sample_silhouette_values, best_cl = kMSilhouette(emb)
+        cluster_labels, variance, best_cl = kMSilhouette(emb)
     elif two_m_clusters:        #an exei stoixeia mesa
         dataset = facenet.get_dataset(args.output_dir)
         images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
         emb = run_forward_pass(images, args.model)
         #de douleuei o tropos p th thelame opote to paw opws prin
-        cluster_labels, silhouette_avg, sample_silhouette_values, best_cl = kMSilhouette(emb)
+        cluster_labels, variance, best_cl = kMSilhouette(emb)
         '''emb2=[]
         while two_m_clusters:
             two_m_cluster = two_m_clusters.pop()
@@ -95,19 +94,19 @@ def main(args):
         if not os.path.exists(output_dir_cluster[i]+' (cropped)'):
             os.makedirs(output_dir_cluster[i]+' (cropped)')
     for j in range(nrof_images):
+        print("img: "+str(j))
         r,g,b = cv2.split(images[j])
         img2 = cv2.merge([b*255,g*255,r*255])
         #path manipulation for imwrite
-        outImWr=output_dir_cluster[cluster_labels[best_cl][j]]+' (cropped)'+'/'+os.path.basename(dataset[0].image_paths[j])
+        outImWr=output_dir_cluster[cluster_labels[j]]+' (cropped)'+'/'+os.path.basename(dataset[0].image_paths[j])
         cv2.imwrite(outImWr,img2)
-        copy(dataset[0].image_paths[j],output_dir_cluster[cluster_labels[best_cl][j]])
-    print(sample_silhouette_values[2])
+        copy(dataset[0].image_paths[j],output_dir_cluster[cluster_labels[j]])
     print('\n')
-    print(cluster_labels[best_cl])
+    print(variance)
 
 
 
-def frame_getter(vid, output_dir, frame):
+def frame_getter(vid, output_dir, frame = None):
     cap = cv2.VideoCapture(vid)
     if frame is None:
         frame_interval = 300  # Number of frames after which to save
@@ -152,14 +151,15 @@ def kMSilhouette(emb):
     range_n_clusters = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] #tha ithela n dokimasw oso megalwnoun taclusters
                                             #an xeirotereuoun ta apotelesmata n stamataeiautomata
     j=0
+    clusterer = [None] * len(range_n_clusters)
     cluster_labels = [None] * len(range_n_clusters)
     silhouette_avg = [None] * len(range_n_clusters)
     sample_silhouette_values = [None] * len(range_n_clusters)
     for n_clusters in range_n_clusters:
         # Initialize the clusterer with n_clusters value and a random generator
         # seed of 10 for reproducibility.
-        clusterer = KMeans(n_clusters=n_clusters, random_state=10)
-        cluster_labels[j] = clusterer.fit_predict(emb)
+        clusterer[j] = KMeans(n_clusters=n_clusters, random_state=10)
+        cluster_labels[j] = clusterer[j].fit_predict(emb)
 
         # The silhouette_score gives the average value for all the samples.
         # This gives a perspective into the density and separation of the formed
@@ -170,49 +170,54 @@ def kMSilhouette(emb):
 
         # Compute the silhouette scores for each sample
         sample_silhouette_values[j] = silhouette_samples(emb, cluster_labels[j])
+        
         j+=1
     #best cluster
     best_cl=silhouette_avg.index(max(silhouette_avg))
     print('best number of clusters: ',best_cl+2)
-    return cluster_labels, silhouette_avg, sample_silhouette_values, best_cl
     
-def outliers(cluster_labels, max_clusters, sample_silhouette_values, silhouette_avg, N, video_path, output_dir_vid, image_paths):
+    # Find variance 
+    var = np.amin(clusterer[best_cl].transform(emb), axis=1)      #i transform gurnaei apostaseis olwn twn kentrwn k pairnw
+                                            #min wste na kratisw tin apostasi tou dikou tou kentrou (den kserw an einai panta swsto omws)!!! na to rwtisw
+    
+    return cluster_labels[best_cl], var, best_cl
+    
+def outliers(cluster_labels, max_clusters, var, N, video_path, output_dir_vid, image_paths):
     nrof_images = len(cluster_labels)
     difference = [0] * (nrof_images)
     outl_sum = 0
-    outl_cluster_sum = [0] * (max_clusters)   #auta
-    sum_of_images_in_cluster = [0] * (max_clusters) #mallon de xreiazonte pinakes n einai
+    outl_cluster_sum = 0
+    sum_of_images_in_cluster = 0
     return_val1 = 0
     return_val2 = []
-    for i in range(nrof_images):
-        if sample_silhouette_values[i] < silhouette_avg - N :
-            difference[i] = silhouette_avg - sample_silhouette_values[i]
-            outl_sum += 1
-    
     for i in range(max_clusters):
         for j in range(nrof_images):
             if (i==cluster_labels[j]):
-                sum_of_images_in_cluster[i] += 1
-                if difference[j]!=0:
+                sum_of_images_in_cluster += 1
+                if var[i] >= N :
                     #vazw poia frames einai
                     _,video = image_paths[j].split('video')
                     _,start_of_frame = video.split('-')
                     frame_nr,_ = start_of_frame.split('.')
                     frame_getter(video_path, output_dir_vid, int(frame_nr)) #pare epipleon frames
-                    outl_cluster_sum[i] += 1
-        if (outl_cluster_sum[i]/sum_of_images_in_cluster[i]) >= 0.7:
+                    outl_cluster_sum += 1
+                    outl_sum += 1
+        if (outl_cluster_sum/sum_of_images_in_cluster) >= 0.6:
             print ("periptwsi 1 gia to cluster: " + str(i))
             return_val1 = 1
-        elif outl_cluster_sum[i]==1:
+        elif outl_cluster_sum==1:
             return_val2.append(i)
             #2-means
-        print (outl_cluster_sum[i])
+        print('\n')
+        print (outl_cluster_sum)
         print (sum_of_images_in_cluster)
+        print('\n')
+        outl_cluster_sum = 0
+        sum_of_images_in_cluster = 0
     return return_val1 ,return_val2
 
 
 def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
-
     minsize = 80 # minimum size of face
     threshold = [ 0.8, 0.9, 0.9 ]  # three steps's threshold
     factor = 0.709 # scale factor
@@ -253,6 +258,7 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
             img_list[j] = prewhitened
             j+=1
     for x in pos:
+        os.remove(x)        #diagrafw ta frames xwris proswpa
         image_paths.remove(x)
     img_list=[x for x in img_list if x is not None]
     images = np.stack(img_list)
