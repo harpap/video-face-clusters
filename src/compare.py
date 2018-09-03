@@ -44,11 +44,13 @@ import align.detect_face
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def main(args):
-    #sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
+    global dataset2
+    dataset2 =[]
+    sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
     output_dir_vid = os.path.expanduser(args.output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
-    video_path = 'C:/Users/Harris/Desktop/MasterChefnew1.mp4'
+    video_path = 'D:/MasterChefnew1.mp4'
     #frame_getter(video_path,output_dir_vid)
     dataset = facenet.get_dataset(args.output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
@@ -58,15 +60,22 @@ def main(args):
     #----------
     cluster_labels, variance, best_cl = kMSilhouette(emb)
     #fix outliers
-    outlier_kind, two_m_clusters = outliers(cluster_labels, best_cl+2, variance, args.outlierConstant, video_path,
-                                                                      output_dir_vid, dataset[0].image_paths)
-    nrof_images = len(dataset[0].image_paths)
-    if outlier_kind==1:
-        dataset = facenet.get_dataset(args.output_dir)
-        images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
-        emb = run_forward_pass(images, args.model)
-        cluster_labels, variance, best_cl = kMSilhouette(emb)
-    elif two_m_clusters:        #an exei stoixeia mesa
+    for i in range(3):
+        outlier_kind, two_m_clusters = outliers(cluster_labels, best_cl+2, variance, args.outlierConstant, video_path,
+                                                                          output_dir_vid, dataset[0].image_paths)
+        
+        if outlier_kind:
+            images2 = load_and_align_data(dataset2, args.image_size, args.margin, args.gpu_memory_fraction)
+            emb2 = run_forward_pass(images2, args.model)
+            dataset[0].image_paths = dataset[0].image_paths + dataset2
+            images = np.concatenate((images, images2))
+            emb = np.concatenate((emb, emb2))
+            cluster_labels, variance, best_cl = kMSilhouette(emb)
+            dataset2 = []
+        else:
+            break
+        
+    if two_m_clusters:        #an exei stoixeia mesa
         dataset = facenet.get_dataset(args.output_dir)
         images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
         emb = run_forward_pass(images, args.model)
@@ -85,7 +94,7 @@ def main(args):
                     if cluster_labels_2.pop(0) == 1:
                         cluster_labels[j] = best_cl+3    #allazw mono gia to 2o label gt to 1o de me noiazei n meinei idio
     '''
-    
+    nrof_images = len(dataset[0])
     output_dir_cluster = [None] * (best_cl+2)
     for i in range(best_cl+2):
         output_dir_cluster[i] = os.path.expanduser(args.output_dir + '/omada '+str(i))
@@ -94,7 +103,6 @@ def main(args):
         if not os.path.exists(output_dir_cluster[i]+' (cropped)'):
             os.makedirs(output_dir_cluster[i]+' (cropped)')
     for j in range(nrof_images):
-        print("img: "+str(j))
         r,g,b = cv2.split(images[j])
         img2 = cv2.merge([b*255,g*255,r*255])
         #path manipulation for imwrite
@@ -108,6 +116,13 @@ def main(args):
 
 def frame_getter(vid, output_dir, frame = None):
     cap = cv2.VideoCapture(vid)
+    
+    def write_img():
+        ret, frame_read = cap.read()
+        string = output_dir+ "/frame-" + str(int(cap.get(1)-1)) + ".jpg"
+        cv2.imwrite(string, frame_read)
+        dataset2.append(string)
+    
     if frame is None:
         frame_interval = 300  # Number of frames after which to save
         frame_count = 0
@@ -121,15 +136,18 @@ def frame_getter(vid, output_dir, frame = None):
                 break
     else:
         total_frames = cap.get(7) #to thelw g an einai sto telos
-        cap.set(1, frame-2)
+        if frame > 2:
+            cap.set(1, frame-2)
+        else:
+            cap.set(1, frame+1)
+            for i in range(2):
+                write_img()
         for i in range(2):
-            ret, frame_read = cap.read()
-            cv2.imwrite(output_dir+ "/frame-" + str(int(cap.get(1)-1)) + ".jpg", frame_read)
+            write_img()
         if total_frames > frame + 2:
             cap.read()              #apla proxwraei g na mn ksanagrapsei tin idia eikona
             for i in range(2):
-                ret, frame_read = cap.read()
-                cv2.imwrite(output_dir+ "/frame-" + str(int(cap.get(1)-1)) + ".jpg", frame_read)
+                write_img()
             # kai meta ksanatrexw ooolo apo tin arxi g ti 1i periptwsi
     # When everything is done, release the capture
     cap.release()
@@ -194,7 +212,7 @@ def outliers(cluster_labels, max_clusters, var, N, video_path, output_dir_vid, i
         for j in range(nrof_images):
             if (i==cluster_labels[j]):
                 sum_of_images_in_cluster += 1
-                if var[i] >= N :
+                if var[j] >= N :
                     #vazw poia frames einai
                     _,video = image_paths[j].split('video')
                     _,start_of_frame = video.split('-')
@@ -208,9 +226,8 @@ def outliers(cluster_labels, max_clusters, var, N, video_path, output_dir_vid, i
         elif outl_cluster_sum==1:
             return_val2.append(i)
             #2-means
-        print('\n')
-        print (outl_cluster_sum)
-        print (sum_of_images_in_cluster)
+        print ('posa outliers exw sto cluster ' + str(outl_cluster_sum) + ' vs')
+        print ('sunolo eikonwn sauto to cluster ' + str(sum_of_images_in_cluster))
         print('\n')
         outl_cluster_sum = 0
         sum_of_images_in_cluster = 0
