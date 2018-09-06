@@ -50,7 +50,7 @@ def main(args):
     output_dir_vid = os.path.expanduser(args.output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
-    video_path = 'D:/MasterChefnew1.mp4'
+    video_path = 'D:/mouzourakis.mp4'
     #frame_getter(video_path,output_dir_vid)
     dataset = facenet.get_dataset(args.output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
@@ -58,10 +58,10 @@ def main(args):
     
     #silhouette
     #----------
-    cluster_labels, variance, best_cl = kMSilhouette(emb)
+    cluster_labels, sample_silhouette, best_cl = kMSilhouette(emb)
     #fix outliers
     for i in range(3):
-        outlier_kind, two_m_clusters = outliers(cluster_labels, best_cl+2, variance, args.outlierConstant, video_path,
+        outlier_kind, two_m_clusters = outliers(cluster_labels, best_cl+2, sample_silhouette, args.outlierConstant, video_path,
                                                                           output_dir_vid, dataset[0].image_paths)
         
         if outlier_kind:
@@ -70,17 +70,18 @@ def main(args):
             dataset[0].image_paths = dataset[0].image_paths + dataset2
             images = np.concatenate((images, images2))
             emb = np.concatenate((emb, emb2))
-            cluster_labels, variance, best_cl = kMSilhouette(emb)
+            cluster_labels, sample_silhouette, best_cl = kMSilhouette(emb)
             dataset2 = []
         else:
             break
         
-    if two_m_clusters:        #an exei stoixeia mesa
+    #if two_m_clusters:        #an exei stoixeia mesa
+    if True:
         dataset = facenet.get_dataset(args.output_dir)
         images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
         emb = run_forward_pass(images, args.model)
         #de douleuei o tropos p th thelame opote to paw opws prin
-        cluster_labels, variance, best_cl = kMSilhouette(emb)
+        cluster_labels, sample_silhouette, best_cl = kMSilhouette(emb)
         '''emb2=[]
         while two_m_clusters:
             two_m_cluster = two_m_clusters.pop()
@@ -110,7 +111,7 @@ def main(args):
         cv2.imwrite(outImWr,img2)
         copy(dataset[0].image_paths[j],output_dir_cluster[cluster_labels[j]])
     print('\n')
-    print(variance)
+    print(sample_silhouette)
 
 
 
@@ -124,7 +125,7 @@ def frame_getter(vid, output_dir, frame = None):
         dataset2.append(string)
     
     if frame is None:
-        frame_interval = 300  # Number of frames after which to save
+        frame_interval = 50  # Number of frames after which to save
         frame_count = 0
         while(cap.isOpened()):
             ret, frame = cap.read()
@@ -172,7 +173,6 @@ def kMSilhouette(emb):
     clusterer = [None] * len(range_n_clusters)
     cluster_labels = [None] * len(range_n_clusters)
     silhouette_avg = [None] * len(range_n_clusters)
-    sample_silhouette_values = [None] * len(range_n_clusters)
     for n_clusters in range_n_clusters:
         # Initialize the clusterer with n_clusters value and a random generator
         # seed of 10 for reproducibility.
@@ -185,22 +185,22 @@ def kMSilhouette(emb):
         silhouette_avg[j] = silhouette_score(emb, cluster_labels[j])
         print("For n_clusters =", n_clusters,
               "The average silhouette_score is :", silhouette_avg[j])
-
-        # Compute the silhouette scores for each sample
-        sample_silhouette_values[j] = silhouette_samples(emb, cluster_labels[j])
-        
         j+=1
+        
     #best cluster
     best_cl=silhouette_avg.index(max(silhouette_avg))
     print('best number of clusters: ',best_cl+2)
     
+    # Compute the silhouette scores for each sample
+    sample_silhouette_values = silhouette_samples(emb, cluster_labels[best_cl])
+    
     # Find variance 
-    var = np.amin(clusterer[best_cl].transform(emb), axis=1)      #i transform gurnaei apostaseis olwn twn kentrwn k pairnw
-                                            #min wste na kratisw tin apostasi tou dikou tou kentrou (den kserw an einai panta swsto omws)!!! na to rwtisw
+    #var = np.amin(clusterer[best_cl].transform(emb), axis=1)      #i transform gurnaei apostaseis olwn twn kentrwn k pairnw
+                                                                  #min wste na kratisw tin apostasi tou dikou tou kentrou
     
-    return cluster_labels[best_cl], var, best_cl
+    return cluster_labels[best_cl], sample_silhouette_values, best_cl
     
-def outliers(cluster_labels, max_clusters, var, N, video_path, output_dir_vid, image_paths):
+def outliers(cluster_labels, max_clusters, sample_sil, N, video_path, output_dir_vid, image_paths):
     nrof_images = len(cluster_labels)
     difference = [0] * (nrof_images)
     outl_sum = 0
@@ -212,7 +212,7 @@ def outliers(cluster_labels, max_clusters, var, N, video_path, output_dir_vid, i
         for j in range(nrof_images):
             if (i==cluster_labels[j]):
                 sum_of_images_in_cluster += 1
-                if var[j] >= N :
+                if sample_sil[j] <= N :
                     #vazw poia frames einai
                     _,video = image_paths[j].split('video')
                     _,start_of_frame = video.split('-')
@@ -287,7 +287,7 @@ def parse_arguments(argv):
     parser.add_argument('model', type=str, 
         help='Could be either a directory containing the meta_file and ckpt_file or a model protobuf (.pb) file')
     parser.add_argument('output_dir', type=str, help='output directory')
-    parser.add_argument('--outlierConstant', type=float, help='Constant for fixing outliers. The bigger the harder to find outlier', default=0.45)
+    parser.add_argument('--outlierConstant', type=float, help='Constant for fixing outliers. The smaller the harder to find outlier', default=0.45)
     parser.add_argument('--image_size', type=int,
         help='Image size (height, width) in pixels.', default=160)
     parser.add_argument('--margin', type=int,
