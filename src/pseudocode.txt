@@ -1,0 +1,22 @@
+main(outlierConstant){
+    dataset2 = []
+    frame_getter()
+    dataset = get_dataset()
+    images = load_and_align_data(dataset)
+    embeddings = run_forward_pass(images)
+    cluster_labels, sample_silhouette, best_cluster = kM_silhouette(embeddings)
+    
+    for i = 1; i ≤ K;i = i + 1 do
+        outlier_kind, two_m_clusters = outliers(cluster_labels, best_cluster, sample_silhouette, outlierConstant, dataset)
+        
+        if outlier_kind == True do
+            images2 = load_and_align_data(dataset2)
+            emb2 = run_forward_pass(images2, args.model)
+            dataset[0].image_paths = dataset[0].image_paths + dataset2
+            images = np.concatenate((images, images2))
+            emb = np.concatenate((emb, emb2))
+            cluster_labels, sample_silhouette, best_cl = kMSilhouette(emb)
+            dataset2 = []
+        else:
+            break
+}

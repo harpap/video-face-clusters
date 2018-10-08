@@ -5,7 +5,7 @@ python src/compare.py ~/models\facenet\20170512-110547/20170512-110547.pb ~/data
 
 python src/compare.py ~/models\facenet\20170512-110547/20170512-110547.pb C:\Users\Harris\Documents\GitHub\facenet-private\frames 2
 
-python src/compare.py ~/models\facenet\20170512-110547/20170512-110547.pb C:\Users\Harris\Documents\GitHub\facenet-private\frames --outlierConstant 0.6
+python src/compare.py ~/models\facenet\20170512-110547/20170512-110547.pb C:\Users\Harris\Documents\GitHub\facenet-private\frames --outlierConstant 0.1
 
 PC SXOLI:
 python src/compare.py ~/models\facenet\20170512-110547/20170512-110547.pb "C:\Users\computer science\Documents\GitHub\facenet-private\frames" 2

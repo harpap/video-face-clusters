@@ -44,13 +44,13 @@ import align.detect_face
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def main(args):
-    global dataset2
+    global dataset2, cluster_labels
     dataset2 =[]
-    sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
+    #sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
     output_dir_vid = os.path.expanduser(args.output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
-    video_path = 'D:/mouzourakis.mp4'
+    video_path = 'E:/OneDrive/Documents/videos/adonis.avi'
     #frame_getter(video_path,output_dir_vid)
     dataset = facenet.get_dataset(args.output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
@@ -74,35 +74,44 @@ def main(args):
             dataset2 = []
         else:
             break
-        
-    #if two_m_clusters:        #an exei stoixeia mesa
-    if True:
-        dataset = facenet.get_dataset(args.output_dir)
-        images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
-        emb = run_forward_pass(images, args.model)
-        #de douleuei o tropos p th thelame opote to paw opws prin
-        cluster_labels, sample_silhouette, best_cl = kMSilhouette(emb)
-        '''emb2=[]
+    
+    if two_m_clusters:        #an exei stoixeia mesa
+        # (TO TSEKARW ME adonis.avi)
+        images2 = load_and_align_data(dataset2, args.image_size, args.margin, args.gpu_memory_fraction)
+        emb2 = run_forward_pass(images2, args.model)
+        dataset[0].image_paths = dataset[0].image_paths + dataset2
+        images = np.concatenate((images, images2))
+        emb = np.concatenate((emb, emb2))
+        nrof_images = len(dataset[0])
         while two_m_clusters:
+            emb2 = []
+            best_cl += 1
             two_m_cluster = two_m_clusters.pop()
             for j in range(nrof_images):
-                if (two_m_cluster == cluster_labels[j]):   #palio label, xalaei logo twn kainouriwn eikonwn!!
+                if (two_m_cluster == cluster_labels[j]):
                     emb2.append(emb[j])
             clusterer = KMeans(n_clusters=2, random_state=10)
             cluster_labels_2 = clusterer.fit_predict(emb2)
+            print ('cluster_labels_2')
+            print (cluster_labels_2)
             for j in range(nrof_images):
-                if (two_m_cluster == cluster_labels[j]):
-                    if cluster_labels_2.pop(0) == 1:
-                        cluster_labels[j] = best_cl+3    #allazw mono gia to 2o label gt to 1o de me noiazei n meinei idio
-    '''
-    nrof_images = len(dataset[0])
+                if (two_m_cluster == cluster_labels[j]):  #oi kainouries oi eikones dn exoun two_m_cluster
+                    first, cluster_labels_2 = cluster_labels_2[0], cluster_labels_2[1:]   #pop
+                    if first == 1:
+                        cluster_labels[j] = best_cl + 1    #allazw mono gia to 2o label gt to 1o de me noiazei n meinei idio
+    
+    
     output_dir_cluster = [None] * (best_cl+2)
+    output_summary = [None] * (best_cl+2)
     for i in range(best_cl+2):
         output_dir_cluster[i] = os.path.expanduser(args.output_dir + '/omada '+str(i))
+        output_summary[i] = os.path.expanduser(args.output_dir + '/SUMMARY/omada '+str(i))
         if not os.path.exists(output_dir_cluster[i]):
             os.makedirs(output_dir_cluster[i])
         if not os.path.exists(output_dir_cluster[i]+' (cropped)'):
             os.makedirs(output_dir_cluster[i]+' (cropped)')
+        if not os.path.exists(output_summary[i]):
+            os.makedirs(output_summary[i])
     for j in range(nrof_images):
         r,g,b = cv2.split(images[j])
         img2 = cv2.merge([b*255,g*255,r*255])
@@ -110,12 +119,14 @@ def main(args):
         outImWr=output_dir_cluster[cluster_labels[j]]+' (cropped)'+'/'+os.path.basename(dataset[0].image_paths[j])
         cv2.imwrite(outImWr,img2)
         copy(dataset[0].image_paths[j],output_dir_cluster[cluster_labels[j]])
+    #f
     print('\n')
     print(sample_silhouette)
 
 
 
-def frame_getter(vid, output_dir, frame = None):
+def frame_getter(vid, output_dir, frame = None, cl = None):
+    global cluster_labels
     cap = cv2.VideoCapture(vid)
     
     def write_img():
@@ -143,12 +154,15 @@ def frame_getter(vid, output_dir, frame = None):
             cap.set(1, frame+1)
             for i in range(2):
                 write_img()
+                cluster_labels = np.append(cluster_labels,cl)
         for i in range(2):
             write_img()
+            cluster_labels = np.append(cluster_labels,cl)
         if total_frames > frame + 2:
             cap.read()              #apla proxwraei g na mn ksanagrapsei tin idia eikona
             for i in range(2):
                 write_img()
+                cluster_labels = np.append(cluster_labels,cl)
             # kai meta ksanatrexw ooolo apo tin arxi g ti 1i periptwsi
     # When everything is done, release the capture
     cap.release()
@@ -217,10 +231,10 @@ def outliers(cluster_labels, max_clusters, sample_sil, N, video_path, output_dir
                     _,video = image_paths[j].split('video')
                     _,start_of_frame = video.split('-')
                     frame_nr,_ = start_of_frame.split('.')
-                    frame_getter(video_path, output_dir_vid, int(frame_nr)) #pare epipleon frames
+                    frame_getter(video_path, output_dir_vid, int(frame_nr), i) #pare epipleon frames
                     outl_cluster_sum += 1
                     outl_sum += 1
-        if (outl_cluster_sum/sum_of_images_in_cluster) >= 0.6:
+        if (outl_cluster_sum/sum_of_images_in_cluster) >= 0.4:
             print ("periptwsi 1 gia to cluster: " + str(i))
             return_val1 = 1
         elif outl_cluster_sum==1:
@@ -275,8 +289,11 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
             img_list[j] = prewhitened
             j+=1
     for x in pos:
-        os.remove(x)        #diagrafw ta frames xwris proswpa
-        image_paths.remove(x)
+        try:
+            os.remove(x)        #diagrafw ta frames xwris proswpa
+            image_paths.remove(x)
+        except FileNotFoundError: 
+            print("warning: file not found (already deleted)")
     img_list=[x for x in img_list if x is not None]
     images = np.stack(img_list)
     return images
@@ -315,3 +332,6 @@ if __name__ == '__main__':
 
 #gia:   sample_silhouette_values[j] = silhouette_samples(emb, cluster_labels[j])
 #The best value is 1 and the worst value is -1. Values near 0 indicate overlapping clusters.
+
+#fakelo summary me proswpo pio konta sto meso oro
+#16/9 na mn ksexasw na svinei ta epipleon frames p pairnw
