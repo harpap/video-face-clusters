@@ -1,22 +1,72 @@
 main(outlierConstant){
-    dataset2 = []
+    image_path2 = []
     frame_getter()
-    dataset = get_dataset()
-    images = load_and_align_data(dataset)
+    image_path = get_image_paths()
+    images = load_and_align_data(image_path)
     embeddings = run_forward_pass(images)
     cluster_labels, sample_silhouette, best_cluster = kM_silhouette(embeddings)
     
     for i = 1; i ≤ K;i = i + 1 do
-        outlier_kind, two_m_clusters = outliers(cluster_labels, best_cluster, sample_silhouette, outlierConstant, dataset)
+        1i_periptwsi, 2i_periptwsi = outliers(cluster_labels, best_cluster, sample_silhouette, outlierConstant, image_path)
         
-        if outlier_kind == True do
-            images2 = load_and_align_data(dataset2)
-            emb2 = run_forward_pass(images2, args.model)
-            dataset[0].image_paths = dataset[0].image_paths + dataset2
-            images = np.concatenate((images, images2))
-            emb = np.concatenate((emb, emb2))
-            cluster_labels, sample_silhouette, best_cl = kMSilhouette(emb)
-            dataset2 = []
-        else:
+        if 1i_periptwsi == True do
+            images2 = load_and_align_data(image_path2)
+            embeddings2 = run_forward_pass(images2)
+            image_path = image_path + image_path2
+            images = images + images2
+            embeddings = embeddings + embeddings2
+            cluster_labels, sample_silhouette, best_cluster = kM_silhouette(embeddings)
+            image_path2 = []
+        else
             break
+    if 2i_periptwsi not empty do        #an exei stoixeia mesa
+        images2 = load_and_align_data(image_path2)
+        embeddings2 = run_forward_pass(images2)
+        image_path = image_path + image_path2
+        images = images + images2
+        embeddings = embeddings + embeddings2
+        while 2i_periptwsi is not empty do
+            embeddings2 = []
+            best_cluster += 1
+            2i_periptwsi = 2i_periptwsi.pop()
+            for i = 1; i ≤ number_of_images; i = i + 1 do
+                if (2i_periptwsi == cluster_labels[i]) do
+                    embeddings2.append(embeddings[i])
+            clusterer = KMeans(n_clusters=2)
+            cluster_labels_2 = clusterer.fit_predict(embeddings2)
+            centers = centers + clusterer.cluster_centers
+            for j = 1; i ≤ number_of_images; i = i + 1 do
+                if (2i_periptwsi == cluster_labels[j]) do
+                    label = cluster_labels_2.pop()   #pop
+                    if label == 1:
+                        cluster_labels[j] = best_cluster    #allazw mono gia to 2o label gt to 1o de me noiazei n meinei idio
+    print_images()
 }
+
+frame_getter
+run_forward_pass
+kM_silhouette(embeddings)
+outliers(cluster_labels, max_clusters, silhouette, N, image_paths){
+    outl_sum = 0
+    outl_cluster_sum = 0
+    sum_of_images_in_cluster = 0
+    return_val1 = 0
+    return_val2 = []
+    for i = 1; i ≤ max_clusters; i = i + 1 do
+        for j = 1; j ≤ number_of_images; j = j + 1 do
+            if (i==cluster_labels[j]) do
+                sum_of_images_in_cluster += 1
+                if silhouette[j] <= N :     # outlier check
+                    current_frame = get_curr_frame(image_paths[j])
+                    frame_getter(current_frame) #pare epipleon frames
+                    outl_cluster_sum += 1
+                    outl_sum += 1
+        if (outl_cluster_sum/sum_of_images_in_cluster) >= 0.4 do  #periptwsi 1
+            return_val1 = 1
+        elif outl_cluster_sum==1 do                               #periptwsi 2
+            return_val2.append(i)
+        outl_cluster_sum = 0
+        sum_of_images_in_cluster = 0
+    return return_val1 ,return_val2
+}
+load_and_align_data

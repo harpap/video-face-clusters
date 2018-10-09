@@ -29,7 +29,7 @@ from __future__ import print_function
 from shutil import copy
 from scipy import misc
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_samples, silhouette_score
+from sklearn.metrics import silhouette_samples, silhouette_score, pairwise_distances_argmin_min
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import tensorflow as tf
@@ -58,7 +58,7 @@ def main(args):
     
     #silhouette
     #----------
-    cluster_labels, sample_silhouette, best_cl = kMSilhouette(emb)
+    cluster_labels, sample_silhouette, best_cl, centers = kMSilhouette(emb)
     #fix outliers
     for i in range(3):
         outlier_kind, two_m_clusters = outliers(cluster_labels, best_cl+2, sample_silhouette, args.outlierConstant, video_path,
@@ -70,7 +70,7 @@ def main(args):
             dataset[0].image_paths = dataset[0].image_paths + dataset2
             images = np.concatenate((images, images2))
             emb = np.concatenate((emb, emb2))
-            cluster_labels, sample_silhouette, best_cl = kMSilhouette(emb)
+            cluster_labels, sample_silhouette, best_cl, centers = kMSilhouette(emb)
             dataset2 = []
         else:
             break
@@ -92,6 +92,7 @@ def main(args):
                     emb2.append(emb[j])
             clusterer = KMeans(n_clusters=2, random_state=10)
             cluster_labels_2 = clusterer.fit_predict(emb2)
+            centers = np.concatenate((centers, clusterer.cluster_centers_))
             print ('cluster_labels_2')
             print (cluster_labels_2)
             for j in range(nrof_images):
@@ -103,6 +104,7 @@ def main(args):
     
     output_dir_cluster = [None] * (best_cl+2)
     output_summary = [None] * (best_cl+2)
+    closest, _ = pairwise_distances_argmin_min(centers, emb) #theseis
     for i in range(best_cl+2):
         output_dir_cluster[i] = os.path.expanduser(args.output_dir + '/omada '+str(i))
         output_summary[i] = os.path.expanduser(args.output_dir + '/SUMMARY/omada '+str(i))
@@ -119,10 +121,8 @@ def main(args):
         outImWr=output_dir_cluster[cluster_labels[j]]+' (cropped)'+'/'+os.path.basename(dataset[0].image_paths[j])
         cv2.imwrite(outImWr,img2)
         copy(dataset[0].image_paths[j],output_dir_cluster[cluster_labels[j]])
-    #f
-    print('\n')
-    print(sample_silhouette)
-
+    for x in closest:
+        copy(dataset[0].image_paths[x],output_summary[cluster_labels[x]])
 
 
 def frame_getter(vid, output_dir, frame = None, cl = None):
@@ -208,11 +208,15 @@ def kMSilhouette(emb):
     # Compute the silhouette scores for each sample
     sample_silhouette_values = silhouette_samples(emb, cluster_labels[best_cl])
     
+    #centroids
+    print('centroids')
+    print(clusterer[best_cl].cluster_centers_ )
+    
     # Find variance 
     #var = np.amin(clusterer[best_cl].transform(emb), axis=1)      #i transform gurnaei apostaseis olwn twn kentrwn k pairnw
                                                                   #min wste na kratisw tin apostasi tou dikou tou kentrou
     
-    return cluster_labels[best_cl], sample_silhouette_values, best_cl
+    return cluster_labels[best_cl], sample_silhouette_values, best_cl, clusterer[best_cl].cluster_centers_
     
 def outliers(cluster_labels, max_clusters, sample_sil, N, video_path, output_dir_vid, image_paths):
     nrof_images = len(cluster_labels)
