@@ -41,20 +41,25 @@ import time
 import argparse
 import facenet
 import align.detect_face
+from tkinter import filedialog
+from tkinter import *
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def main(args):
-    global dataset2, cluster_labels
+    global dataset2, cluster_labels, video_path, model, output_dir
+    model = args.model
+    output_dir = args.output_dir
     dataset2 =[]
     #sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
-    output_dir_vid = os.path.expanduser(args.output_dir + '/video')
+    video_path = 'E:/OneDrive/Documents/videos/adonis.avi'
+    gui()
+    output_dir_vid = os.path.expanduser(output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
-    video_path = 'E:/OneDrive/Documents/videos/adonis.avi'
     #frame_getter(video_path,output_dir_vid)
-    dataset = facenet.get_dataset(args.output_dir)
+    dataset = facenet.get_dataset(output_dir)
     images = load_and_align_data(dataset[0].image_paths, args.image_size, args.margin, args.gpu_memory_fraction)
-    emb = run_forward_pass(images, args.model)
+    emb = run_forward_pass(images, model)
     
     #silhouette
     #----------
@@ -66,7 +71,7 @@ def main(args):
         
         if outlier_kind:
             images2 = load_and_align_data(dataset2, args.image_size, args.margin, args.gpu_memory_fraction)
-            emb2 = run_forward_pass(images2, args.model)
+            emb2 = run_forward_pass(images2, model)
             dataset[0].image_paths = dataset[0].image_paths + dataset2
             images = np.concatenate((images, images2))
             emb = np.concatenate((emb, emb2))
@@ -78,7 +83,7 @@ def main(args):
     if two_m_clusters:        #an exei stoixeia mesa
         # (TO TSEKARW ME adonis.avi)
         images2 = load_and_align_data(dataset2, args.image_size, args.margin, args.gpu_memory_fraction)
-        emb2 = run_forward_pass(images2, args.model)
+        emb2 = run_forward_pass(images2, model)
         dataset[0].image_paths = dataset[0].image_paths + dataset2
         images = np.concatenate((images, images2))
         emb = np.concatenate((emb, emb2))
@@ -106,8 +111,8 @@ def main(args):
     output_summary = [None] * (best_cl+2)
     closest, _ = pairwise_distances_argmin_min(centers, emb) #theseis
     for i in range(best_cl+2):
-        output_dir_cluster[i] = os.path.expanduser(args.output_dir + '/omada '+str(i))
-        output_summary[i] = os.path.expanduser(args.output_dir + '/SUMMARY/omada '+str(i))
+        output_dir_cluster[i] = os.path.expanduser(output_dir + '/omada '+str(i))
+        output_summary[i] = os.path.expanduser(output_dir + '/SUMMARY/omada '+str(i))
         if not os.path.exists(output_dir_cluster[i]):
             os.makedirs(output_dir_cluster[i])
         if not os.path.exists(output_dir_cluster[i]+' (cropped)'):
@@ -122,6 +127,11 @@ def main(args):
         cv2.imwrite(outImWr,img2)
         copy(dataset[0].image_paths[j],output_dir_cluster[cluster_labels[j]])
     for x in closest:
+        r,g,b = cv2.split(images[x])
+        img2 = cv2.merge([b*255,g*255,r*255])
+        #path manipulation for imwrite
+        outImWr=output_summary[cluster_labels[x]]+'/(cropped)'+os.path.basename(dataset[0].image_paths[x])
+        cv2.imwrite(outImWr,img2)
         copy(dataset[0].image_paths[x],output_summary[cluster_labels[x]])
 
 
@@ -208,10 +218,6 @@ def kMSilhouette(emb):
     # Compute the silhouette scores for each sample
     sample_silhouette_values = silhouette_samples(emb, cluster_labels[best_cl])
     
-    #centroids
-    print('centroids')
-    print(clusterer[best_cl].cluster_centers_ )
-    
     # Find variance 
     #var = np.amin(clusterer[best_cl].transform(emb), axis=1)      #i transform gurnaei apostaseis olwn twn kentrwn k pairnw
                                                                   #min wste na kratisw tin apostasi tou dikou tou kentrou
@@ -220,7 +226,6 @@ def kMSilhouette(emb):
     
 def outliers(cluster_labels, max_clusters, sample_sil, N, video_path, output_dir_vid, image_paths):
     nrof_images = len(cluster_labels)
-    difference = [0] * (nrof_images)
     outl_sum = 0
     outl_cluster_sum = 0
     sum_of_images_in_cluster = 0
@@ -302,13 +307,69 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
     images = np.stack(img_list)
     return images
 
+def gui():
+
+    def BVideoFunction():
+        global video_path
+        video_path =  filedialog.askopenfilename(initialdir = "/",title = "Choose Video source",filetypes = (("avi files","*.avi"),("mp4 files","*.mp4"),("all files","*.*")))
+
+    def BOutpDirFunction():
+        global output_dir
+        output_dir =  filedialog.askdirectory()
+
+    def BModelFunction():
+        global model
+        model =  filedialog.askopenfilename(initialdir = "/",title = "Give the path of the model",filetypes = (("pb files","*.pb"),("all files","*.*")))
+
+    def BRunFunction():
+        global video_path
+        global output_dir
+        try:
+            print (video_path)
+            print (output_dir)
+        except NameError: 
+            print("vale label")
+        root.destroy()
+
+    root = Tk(className = ' Face Classification From Video')
+    root.configure(background='#A3CEDC')
+
+    BVideo = Button(root, text ="    Choose Video source    ", command = BVideoFunction)
+    BVideo.grid(ipadx=3, ipady=3, padx=4, pady=4)
+
+    BOutpDir = Button(root, text ="Choose Output directory \n(Needs to be empty)", command = BOutpDirFunction)
+    BOutpDir.grid(ipadx=2, ipady=2, padx=4, pady=4)
+
+    LFrames = Label( root, text='Frames after which\n to exrtact image:' )
+    LFrames.grid(column=2, row=0, ipadx=2, ipady=2, padx=4, pady=4)
+    frames = StringVar()
+    frames.set(50)
+    EFrames = Entry(root, bd =5, textvariable = frames)
+    EFrames.grid(column=3, row=0, ipadx=2, ipady=2, padx=4, pady=4)
+
+    LConstant = Label( root, text='Silhouette constant for locating outliers\n(Recommendation: Do not modify):' )
+    LConstant.grid(column=2, row=1, ipadx=1, ipady=1, padx=4, pady=4)
+    constant = StringVar()
+    constant.set(0.1)
+    EConstant = Entry(root, bd =5, textvariable = constant)
+    EConstant.grid(column=3, row=1, ipadx=2, ipady=2, padx=4, pady=4)
+    
+    BModel = Button(root, text ="Give the path of the model protobuf (.pb) file", command = BModelFunction)
+    BModel.grid(row=3, column=0, ipadx=2, ipady=2, padx=4, pady=4)
+
+    BRun = Button(root, text ="RUN", command = BRunFunction)
+    BRun.grid(column=2, row=4, ipadx=3, ipady=3, padx=4, pady=4)
+
+    root.mainloop()
+
+
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('model', type=str, 
-        help='Could be either a directory containing the meta_file and ckpt_file or a model protobuf (.pb) file')
-    parser.add_argument('output_dir', type=str, help='output directory')
-    parser.add_argument('--outlierConstant', type=float, help='Constant for fixing outliers. The smaller the harder to find outlier', default=0.45)
+    parser.add_argument('--model', type=str, 
+        help='Could be either a directory containing the meta_file and ckpt_file or a model protobuf (.pb) file', default='~/models/facenet/20170512-110547/20170512-110547.pb')
+    parser.add_argument('--output_dir', type=str, help='output directory', default='C:/Users/Harris/Documents/GitHub/facenet-private/frames')
+    parser.add_argument('--outlierConstant', type=float, help='Constant for fixing outliers. The smaller the harder to find outlier', default=0.1)
     parser.add_argument('--image_size', type=int,
         help='Image size (height, width) in pixels.', default=160)
     parser.add_argument('--margin', type=int,

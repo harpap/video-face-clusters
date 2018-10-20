@@ -6,7 +6,7 @@ main(outlierConstant){
     embeddings = run_forward_pass(images)
     cluster_labels, sample_silhouette, best_cluster = kM_silhouette(embeddings)
     
-    for i = 1; i ≤ K;i = i + 1 do
+    for i = 0; i ≤ 3; i = i + 1 do
         1i_periptwsi, 2i_periptwsi = outliers(cluster_labels, best_cluster, sample_silhouette, outlierConstant, image_path)
         
         if 1i_periptwsi == True do
