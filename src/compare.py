@@ -42,6 +42,7 @@ import argparse
 import facenet
 import align.detect_face
 from tkinter import filedialog
+from tkinter import messagebox
 from tkinter import *
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -98,18 +99,17 @@ def main(args):
             clusterer = KMeans(n_clusters=2, random_state=10)
             cluster_labels_2 = clusterer.fit_predict(emb2)
             centers = np.concatenate((centers, clusterer.cluster_centers_))
-            print ('cluster_labels_2')
-            print (cluster_labels_2)
             for j in range(nrof_images):
                 if (two_m_cluster == cluster_labels[j]):  #oi kainouries oi eikones dn exoun two_m_cluster
                     first, cluster_labels_2 = cluster_labels_2[0], cluster_labels_2[1:]   #pop
                     if first == 1:
                         cluster_labels[j] = best_cl + 1    #allazw mono gia to 2o label gt to 1o de me noiazei n meinei idio
     
-    
+    nrof_images = len(dataset[0])
     output_dir_cluster = [None] * (best_cl+2)
     output_summary = [None] * (best_cl+2)
-    closest, _ = pairwise_distances_argmin_min(centers, emb) #theseis
+    closest, _ = pairwise_distances_argmin_min(centers, emb) #theseis [133  47 150 185 150]
+    closest = np.unique(closest)
     for i in range(best_cl+2):
         output_dir_cluster[i] = os.path.expanduser(output_dir + '/omada '+str(i))
         output_summary[i] = os.path.expanduser(output_dir + '/SUMMARY/omada '+str(i))
@@ -132,6 +132,11 @@ def main(args):
         #path manipulation for imwrite
         outImWr=output_summary[cluster_labels[x]]+'/(cropped)'+os.path.basename(dataset[0].image_paths[x])
         cv2.imwrite(outImWr,img2)
+        fig = plt.figure() 
+        fig.canvas.set_window_title('cluster: ' + str(cluster_labels[x]))
+        plt.imshow(images[x], interpolation = 'bicubic')
+        plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+        plt.show()
         copy(dataset[0].image_paths[x],output_summary[cluster_labels[x]])
 
 
@@ -315,11 +320,11 @@ def gui():
 
     def BOutpDirFunction():
         global output_dir
-        output_dir =  filedialog.askdirectory()
+        output_dir =  filedialog.askdirectory(initialdir = os.path.dirname(os.path.realpath(__file__)))
 
     def BModelFunction():
         global model
-        model =  filedialog.askopenfilename(initialdir = "/",title = "Give the path of the model",filetypes = (("pb files","*.pb"),("all files","*.*")))
+        model =  filedialog.askopenfilename(initialdir = os.path.dirname(os.path.realpath(__file__)) ,title = "Give the path of the model",filetypes = (("pb files","*.pb"),("all files","*.*")))
 
     def BRunFunction():
         global video_path
@@ -330,8 +335,14 @@ def gui():
         except NameError: 
             print("vale label")
         root.destroy()
+        
+    def on_closing():
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            root.destroy()
+            exit()
 
-    root = Tk(className = ' Face Classification From Video')
+
+    root = Tk(className = ' Finding Distinct Faces')
     root.configure(background='#A3CEDC')
 
     BVideo = Button(root, text ="    Choose Video source    ", command = BVideoFunction)
@@ -359,7 +370,8 @@ def gui():
 
     BRun = Button(root, text ="RUN", command = BRunFunction)
     BRun.grid(column=2, row=4, ipadx=3, ipady=3, padx=4, pady=4)
-
+    
+    root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
 
 
