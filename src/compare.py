@@ -27,6 +27,7 @@ from __future__ import division
 from __future__ import print_function
 
 from shutil import copy
+from shutil import rmtree
 from scipy import misc
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score, pairwise_distances_argmin_min
@@ -52,7 +53,7 @@ def main(args):
     output_dir = args.output_dir
     dataset2 =[]
     #sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
-    video_path = 'E:/OneDrive/Documents/videos/adonis.avi'
+    video_path = 'E:/OneDrive/Documents/videos/genimata.avi'
     gui()
     output_dir_vid = os.path.expanduser(output_dir + '/video')
     if not os.path.exists(output_dir_vid):
@@ -138,6 +139,7 @@ def main(args):
         plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
         plt.show()
         copy(dataset[0].image_paths[x],output_summary[cluster_labels[x]])
+    show_del_gui()
 
 
 def frame_getter(vid, output_dir, frame = None, cl = None):
@@ -285,6 +287,9 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
         if bounding_boxes.size==0:
             print('image:'+image_paths[i]+'\n has not a detectable face')
             pos.append(image_paths[i])
+        elif bounding_boxes.shape[0]!=1:
+            print('image:'+image_paths[i]+'\n has more than one face')
+            pos.append(image_paths[i])
         else:
             det = np.squeeze(bounding_boxes[0,0:4])
             bb = np.zeros(4, dtype=np.int32)
@@ -316,11 +321,11 @@ def gui():
 
     def BVideoFunction():
         global video_path
-        video_path =  filedialog.askopenfilename(initialdir = "/",title = "Choose Video source",filetypes = (("avi files","*.avi"),("mp4 files","*.mp4"),("all files","*.*")))
+        video_path =  filedialog.askopenfilename(initialdir = os.path.dirname(video_path), title = "Choose Video source",filetypes = (("avi files","*.avi"),("mp4 files","*.mp4"),("all files","*.*")))
 
     def BOutpDirFunction():
         global output_dir
-        output_dir =  filedialog.askdirectory(initialdir = os.path.dirname(os.path.realpath(__file__)))
+        output_dir =  filedialog.askdirectory(initialdir = output_dir)
 
     def BModelFunction():
         global model
@@ -370,6 +375,38 @@ def gui():
 
     BRun = Button(root, text ="RUN", command = BRunFunction)
     BRun.grid(column=2, row=4, ipadx=3, ipady=3, padx=4, pady=4)
+    
+    root.protocol("WM_DELETE_WINDOW", on_closing)
+    root.mainloop()
+    
+def show_del_gui():
+    def BShowFunction():
+        global output_dir
+        filedialog.askopenfile(mode="r", initialdir = output_dir)
+        
+    def BDelFunction():
+        global output_dir
+        if messagebox.askokcancel("Delete", "Are you sure you want to delete all results?"):
+            for the_file in os.listdir(output_dir):
+                file_path = os.path.join(output_dir, the_file)
+                try:
+                    if os.path.isdir(file_path): rmtree(file_path)
+                except Exception as e:
+                    print(e)
+        
+    def on_closing():
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            root.destroy()
+            exit()
+
+    root = Tk(className = ' Finding Distinct Faces')
+    root.configure(background='#A3CEDC')
+
+    BShow = Button(root, text ="Show results", command = BShowFunction)
+    BShow.grid(ipadx=3, ipady=3, padx=4, pady=4)
+    
+    BDel = Button(root, text ="Delete results", command = BDelFunction)
+    BDel.grid(ipadx=2, ipady=2, padx=4, pady=4)
     
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
