@@ -53,7 +53,7 @@ def main(args):
     output_dir = args.output_dir
     dataset2 =[]
     #sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
-    video_path = 'E:/OneDrive/Documents/videos/genimata.avi'
+    video_path = 'E:/VIDEOS g ergasia/kanelli.mp4'
     gui()
     output_dir_vid = os.path.expanduser(output_dir + '/video')
     if not os.path.exists(output_dir_vid):
@@ -99,18 +99,17 @@ def main(args):
                     emb2.append(emb[j])
             clusterer = KMeans(n_clusters=2, random_state=10)
             cluster_labels_2 = clusterer.fit_predict(emb2)
-            centers = np.concatenate((centers, clusterer.cluster_centers_))
+            centers[two_m_cluster] = clusterer.cluster_centers_[0]
+            centers=np.vstack((centers, clusterer.cluster_centers_[1]))
             for j in range(nrof_images):
                 if (two_m_cluster == cluster_labels[j]):  #oi kainouries oi eikones dn exoun two_m_cluster
                     first, cluster_labels_2 = cluster_labels_2[0], cluster_labels_2[1:]   #pop
                     if first == 1:
                         cluster_labels[j] = best_cl + 1    #allazw mono gia to 2o label gt to 1o de me noiazei n meinei idio
-    
+                        
     nrof_images = len(dataset[0])
     output_dir_cluster = [None] * (best_cl+2)
     output_summary = [None] * (best_cl+2)
-    closest, _ = pairwise_distances_argmin_min(centers, emb) #theseis [133  47 150 185 150]
-    closest = np.unique(closest)
     for i in range(best_cl+2):
         output_dir_cluster[i] = os.path.expanduser(output_dir + '/omada '+str(i))
         output_summary[i] = os.path.expanduser(output_dir + '/SUMMARY/omada '+str(i))
@@ -127,19 +126,35 @@ def main(args):
         outImWr=output_dir_cluster[cluster_labels[j]]+' (cropped)'+'/'+os.path.basename(dataset[0].image_paths[j])
         cv2.imwrite(outImWr,img2)
         copy(dataset[0].image_paths[j],output_dir_cluster[cluster_labels[j]])
+    for i in range(best_cl+2):
+        emb2 = []
+        dataset2 = []
+        for j in range(nrof_images):
+            if (i==cluster_labels[j]):
+                emb2.append(emb[j])
+                dataset2.append(dataset[0].image_paths[j])
+                #cropped images[j]
+        Ccenter=[centers[i],centers[i]]
+        closest, _ = pairwise_distances_argmin_min(Ccenter, emb2)
+        print (closest)
+        copy(dataset2[closest[0]],output_summary[i])
+        #copy
+        
+    '''            
     for x in closest:
         r,g,b = cv2.split(images[x])
         img2 = cv2.merge([b*255,g*255,r*255])
         #path manipulation for imwrite
         outImWr=output_summary[cluster_labels[x]]+'/(cropped)'+os.path.basename(dataset[0].image_paths[x])
         cv2.imwrite(outImWr,img2)
-        fig = plt.figure() 
-        fig.canvas.set_window_title('cluster: ' + str(cluster_labels[x]))
-        plt.imshow(images[x], interpolation = 'bicubic')
-        plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
-        plt.show()
+        #fig = plt.figure() 
+        #fig.canvas.set_window_title('cluster: ' + str(cluster_labels[x]))
+        #plt.imshow(images[x], interpolation = 'bicubic')
+        #plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+        #plt.show()
         copy(dataset[0].image_paths[x],output_summary[cluster_labels[x]])
-    show_del_gui()
+    '''
+    #show_del_gui()
 
 
 def frame_getter(vid, output_dir, frame = None, cl = None):
