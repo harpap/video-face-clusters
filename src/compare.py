@@ -81,10 +81,10 @@ def main(args):
             dataset2 = []
         else:
             break
-    
+            
     if two_m_clusters:        #an exei stoixeia mesa
         # (TO TSEKARW ME adonis.avi)
-        images2 = load_and_align_data(dataset2, args.image_size, args.margin, args.gpu_memory_fraction)
+        images2 = load_and_align_data(dataset2, args.image_size, args.margin, args.gpu_memory_fraction, 1)   #den esvina ta cllabels p kanei o framgetter kai den itn 1:1 me t dataset
         emb2 = run_forward_pass(images2, model)
         dataset[0].image_paths = dataset[0].image_paths + dataset2
         images = np.concatenate((images, images2))
@@ -128,16 +128,15 @@ def main(args):
         copy(dataset[0].image_paths[j],output_dir_cluster[cluster_labels[j]])
     for i in range(best_cl+2):
         emb2 = []
-        dataset2 = []
+        dataset3 = []
         for j in range(nrof_images):
             if (i==cluster_labels[j]):
                 emb2.append(emb[j])
-                dataset2.append(dataset[0].image_paths[j])
+                dataset3.append(dataset[0].image_paths[j])
                 #cropped images[j]
         Ccenter=[centers[i],centers[i]]
         closest, _ = pairwise_distances_argmin_min(Ccenter, emb2)
-        print (closest)
-        copy(dataset2[closest[0]],output_summary[i])
+        copy(dataset3[closest[0]],output_summary[i])
         #copy
         
     '''            
@@ -271,7 +270,7 @@ def outliers(cluster_labels, max_clusters, sample_sil, N, video_path, output_dir
         elif outl_cluster_sum==1:
             return_val2.append(i)
             #2-means
-        print ('posa outliers exw sto cluster ' + str(outl_cluster_sum) + ' vs')
+        print ('posa outliers exw sto cluster '+str(i)+':  ' + str(outl_cluster_sum) + ' vs')
         print ('sunolo eikonwn sauto to cluster ' + str(sum_of_images_in_cluster))
         print('\n')
         outl_cluster_sum = 0
@@ -279,7 +278,8 @@ def outliers(cluster_labels, max_clusters, sample_sil, N, video_path, output_dir
     return return_val1 ,return_val2
 
 
-def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
+def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction, cl_flag = None):
+    global cluster_labels
     minsize = 80 # minimum size of face
     threshold = [ 0.8, 0.9, 0.9 ]  # three steps's threshold
     factor = 0.709 # scale factor
@@ -292,19 +292,40 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
             pnet, rnet, onet = align.detect_face.create_mtcnn(sess, None)
   
     nrof_samples = len(image_paths)
+    if cl_flag:
+        start =len(cluster_labels)-nrof_samples
     img_list = [None] * nrof_samples
-    j=0
-    pos=[]
-    for i in range(nrof_samples):
+    i=0
+    while i < nrof_samples:
         img = misc.imread(os.path.expanduser(image_paths[i]), mode='RGB')
         img_size = np.asarray(img.shape)[0:2]
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
         if bounding_boxes.size==0:
             print('image:'+image_paths[i]+'\n has not a detectable face')
-            pos.append(image_paths[i])
+            try:
+                os.remove(image_paths[i])        #diagrafw ta frames xwris proswpa
+                image_paths.pop(i)
+            except FileNotFoundError: 
+                print("warning: file not found (already deleted)")
+            if cl_flag:
+                print(cluster_labels)
+                cluster_labels = np.delete(cluster_labels, i+start)
+                print(cluster_labels)
+            nrof_samples-=1
+            i-=1
         elif bounding_boxes.shape[0]!=1:
             print('image:'+image_paths[i]+'\n has more than one face')
-            pos.append(image_paths[i])
+            try:
+                os.remove(image_paths[i])        #diagrafw ta frames xwris proswpa
+                image_paths.pop(i)
+            except FileNotFoundError: 
+                print("warning: file not found (already deleted)")
+            if cl_flag:
+                print(cluster_labels)
+                cluster_labels = np.delete(cluster_labels, i+start)
+                print(cluster_labels)
+            nrof_samples-=1
+            i-=1
         else:
             det = np.squeeze(bounding_boxes[0,0:4])
             bb = np.zeros(4, dtype=np.int32)
@@ -317,17 +338,11 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
             prewhitened = facenet.prewhiten(aligned)
             '''r,g,b = cv2.split(prewhitened)
             img2 = cv2.merge([b,g,r])
-            cv2.imshow('image'+str(j),img2)   
+            cv2.imshow('image'+str(i),img2)   
             cv2.waitKey(0)
             cv2.destroyAllWindows()'''
-            img_list[j] = prewhitened
-            j+=1
-    for x in pos:
-        try:
-            os.remove(x)        #diagrafw ta frames xwris proswpa
-            image_paths.remove(x)
-        except FileNotFoundError: 
-            print("warning: file not found (already deleted)")
+            img_list[i] = prewhitened
+        i+=1
     img_list=[x for x in img_list if x is not None]
     images = np.stack(img_list)
     return images
