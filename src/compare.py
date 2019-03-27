@@ -28,7 +28,7 @@ from __future__ import print_function
 
 import PIL
 from PIL import ImageTk
-from shutil import copy, rmtree
+from shutil import copy, rmtree, move
 from scipy import misc
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score, pairwise_distances_argmin_min
@@ -50,11 +50,12 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 def main(args):
 
     class Data:
-        def __init__(self, image_path, image, cluster_label, emb):
+        def __init__(self, image_path, image, cluster_label, emb, outlier):
             self.image_path = image_path
             self.image = image
             self.cluster_label = cluster_label
             self.emb = emb
+            self.outlier = outlier
             
         def print_data(self):
             print(self.image_path)
@@ -133,7 +134,7 @@ def main(args):
             path = output_dir_vid+ "/frame-" + str(int(cap.get(1)-1)) + ".jpg"
             if not (os.path.isfile(path)):
                 cv2.imwrite(path, frame_read)
-                temp_data_list.append(Data(image_path = path, image = None, cluster_label = cl, emb = None))
+                temp_data_list.append(Data(image_path = path, image = None, cluster_label = cl, emb = None, outlier = False))
         
         if frame is None:
             frame_count = 0
@@ -143,7 +144,7 @@ def main(args):
                     if (frame_count % frame_interval) == 0:
                         path = output_dir_vid+ "/frame-" + str(frame_count) + ".jpg"
                         cv2.imwrite(path, frame)
-                        data_list.append(Data(image_path = path, image = None, cluster_label = None, emb = None))
+                        data_list.append(Data(image_path = path, image = None, cluster_label = None, emb = None, outlier = False))
                     frame_count+=1
                 else:
                     break
@@ -280,13 +281,14 @@ def main(args):
         outl_sum = 0
         outl_cluster_sum = 0
         sum_of_images_in_cluster = 0
-        return_val1 = 0
+        return_val1 = -1
         return_val2 = []
         for i in range(max_clusters):
             for j in range(nrof_images):
                 if (i==dl[j].cluster_label):
                     sum_of_images_in_cluster += 1
                     if sample_sil[j] <= N :
+                        dl[j].outlier = True
                         #vazw poia frames einai
                         _,video = dl[j].image_path.split('video')
                         _,start_of_frame = video.split('-')
@@ -295,8 +297,8 @@ def main(args):
                         outl_cluster_sum += 1
                         outl_sum += 1
             if (outl_cluster_sum/sum_of_images_in_cluster) >= 0.4:
-                print ("periptwsi 1 gia to cluster: " + str(i))
-                return_val1 = 1
+                print ("REDO gia to cluster: " + str(i))
+                return_val1 = i
             elif outl_cluster_sum==1:
                 return_val2.append(i)
                 #2-means
@@ -306,6 +308,16 @@ def main(args):
             outl_cluster_sum = 0
             sum_of_images_in_cluster = 0
         return return_val1 ,return_val2
+    
+    def dispose_outliers(): #isws to xrisimopoiisw de kserw akoma (k to outlier_index_list tou outliers)
+        print (outlier_index_list)
+        outlier_index_list.sort()
+        print (outlier_index_list)
+        index_fix = 0
+        for i in outlier_index_list:
+            print(data_list[i - index_fix].cluster_label)
+            del data_list[i - index_fix] #tha ta metakinw anti g del
+            index_fix += 1
     
     def show_del_gui(output_dir, output_summary):
     
@@ -379,7 +391,7 @@ def main(args):
     data_list = []
     temp_data_list = []
     #sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
-    video_path = 'E:/VIDEOS g ergasia/kanelli.mp4'
+    video_path = 'D:/mpoulas.mp4'
     outl_const = args.outlierConstant
     video_path, output_dir, model, frame_interval, outl_const = gui(video_path, args.output_dir, args.model, outl_const)
     output_dir_vid = os.path.expanduser(output_dir + '/video')
@@ -390,18 +402,17 @@ def main(args):
         frame_getter(frame_interval)
     else:
         dataset = facenet.get_dataset(output_dir)
-        for path in dataset[0].image_paths: data_list.append(Data(image_path = path, image = None, cluster_label = None, emb = None))
+        for path in dataset[0].image_paths: data_list.append(Data(image_path = path, image = None, cluster_label = None, emb = None, outlier = False))
     load_and_align_data(data_list)
     run_forward_pass(data_list, model)
     #silhouette
     #----------
     sample_silhouette, best_cl, centers = kMSilhouette(data_list)
     #fix outliers
-    for i in range(3): #261 298 mpoulas
-        redo, two_m_clusters = outliers(data_list, best_cl+2, sample_silhouette, outl_const, video_path,
-                                                                          output_dir_vid)
+    for i in range(3):
+        redo, two_m_clusters = outliers(data_list, best_cl+2, sample_silhouette, outl_const, video_path, output_dir_vid)
         
-        if redo:
+        if not redo == -1:  # if redo==True
             load_and_align_data(temp_data_list)
             run_forward_pass(temp_data_list, model)
             data_list = data_list + temp_data_list
@@ -409,7 +420,7 @@ def main(args):
             temp_data_list = []
         else:
             break
-            
+    
     if two_m_clusters:        #an exei stoixeia mesa
         load_and_align_data(temp_data_list)   #den esvina ta cllabels p kanei o framgetter kai den itn 1:1 me t dataset
         run_forward_pass(temp_data_list, model)
@@ -432,6 +443,31 @@ def main(args):
                     if first == 1:
                         data_list[j].cluster_label = best_cl + 1    #allazw mono gia to 2o label gt to 1o de me noiazei n meinei idio
                         
+    
+    dispose, _ = outliers(data_list, best_cl+2, sample_silhouette, outl_const, video_path, output_dir_vid)
+    
+    nrof_images = len(data_list)
+    if not dispose == -1:
+        best_cl -= 1
+    outl_dir = os.path.expanduser(output_dir + '/outliers')
+    if not os.path.exists(outl_dir):
+        os.makedirs(outl_dir)
+    for j in range(nrof_images):
+        if data_list[j].cluster_label == dispose or data_list[j].outlier:
+            r,g,b = cv2.split(data_list[j].image)
+            img2 = cv2.merge([b*255,g*255,r*255])
+            #path manipulation for imwrite
+            outImWr=outl_dir+'/'+str(data_list[j].cluster_label)+' (cropped)'+os.path.basename(data_list[j].image_path)
+            cv2.imwrite(outImWr,img2)
+            copy(data_list[j].image_path,outl_dir)
+    i=0
+    while i < nrof_images:
+        if data_list[i].cluster_label == dispose or data_list[i].outlier:
+            del data_list[i]
+            nrof_images-=1
+            i-=1
+        i+=1
+    
     nrof_images = len(data_list)
     output_dir_cluster = [None] * (best_cl+2)
     output_summary = [None] * (best_cl+2)
@@ -451,6 +487,10 @@ def main(args):
         outImWr=output_dir_cluster[data_list[j].cluster_label]+' (cropped)'+'/'+os.path.basename(data_list[j].image_path)
         cv2.imwrite(outImWr,img2)
         copy(data_list[j].image_path,output_dir_cluster[data_list[j].cluster_label])
+    
+    #edw itn ta dispose t palia
+    
+    nrof_images = len(data_list)
     for i in range(best_cl+2):
         emb2 = []
         dataset3 = []
@@ -492,7 +532,6 @@ if __name__ == '__main__':
     main(parse_arguments(sys.argv[1:]))
 #apo ta palia i mikroteri apostasi =0.7680
 #sto interview 0.2856
-#me k-means (mathisi xwris epivlepsi dld den exw etiketes) sta emb na lew poses omades thelw kai na kanei clustering
 
 #de xreiazonte ta plots
 #interface, database me polla video
@@ -501,12 +540,7 @@ if __name__ == '__main__':
 #There are five landmarks detected by MTCNN and these are left eye, right eye, nose, left mouth corner, and right mouth corner.
 # It would not be straight forward to detect a larger number of landmarks.
 
-#diorthwsa ta false detect k ta minsize
-#PREPEI na to testarw k sta alla video
-#na sigourepsw oti den mou aporriptei "kala" proswpa
-
 #gia:   sample_silhouette_values[j] = silhouette_samples(emb, cluster_labels[j])
 #The best value is 1 and the worst value is -1. Values near 0 indicate overlapping clusters.
 
-#fakelo summary me proswpo pio konta sto meso oro
 #16/9 na mn ksexasw na svinei ta epipleon frames p pairnw

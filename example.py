@@ -23,3 +23,22 @@ for y in range(5):
   Grid.rowconfigure(frame, y, weight=1)
 
 root.mainloop()
+'''
+if not dispose == -1:
+        best_cl -= 1
+        os.rmdir(output_summary[dispose])
+        del output_summary[dispose]
+        outl_dir = os.path.expanduser(output_dir + '/outliers')
+        if not os.path.exists(outl_dir):
+            os.makedirs(outl_dir)
+        move(output_dir_cluster[dispose],outl_dir)
+        move(output_dir_cluster[dispose]+' (cropped)',outl_dir)
+        i=0
+        while i < nrof_images:
+            if data_list[i].cluster_label == dispose:
+                del data_list[i]
+                nrof_images-=1
+                i-=1
+            i+=1
+            
+'''
