@@ -179,11 +179,13 @@ def main(args):
                 pnet, rnet, onet = align.detect_face.create_mtcnn(sess, None)
       
         nrof_samples = len(dl)
+        #nrof_samples_dif = nrof_samples # to thelw g ta multiple faces (wste n mn ksanampainei se epeksergasmena dl to main loop tou while)
         i=0
         while i < nrof_samples:
             img = misc.imread(os.path.expanduser(dl[i].image_path), mode='RGB')
             img_size = np.asarray(img.shape)[0:2]
             bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
+            nrof_faces = bounding_boxes.shape[0]
             if bounding_boxes.size==0:
                 print('image:'+dl[i].image_path+'\n has not a detectable face')
                 try:
@@ -194,14 +196,23 @@ def main(args):
                 nrof_samples-=1
                 i-=1
             elif bounding_boxes.shape[0]!=1:
+                for j in range(nrof_faces):
+                    det = np.squeeze(bounding_boxes[j,0:4])
+                    bb = np.zeros(4, dtype=np.int32)
+                    bb[0] = np.maximum(det[0]-args.margin/2, 0)
+                    bb[1] = np.maximum(det[1]-args.margin/2, 0)
+                    bb[2] = np.minimum(det[2]+args.margin/2, img_size[1])
+                    bb[3] = np.minimum(det[3]+args.margin/2, img_size[0])
+                    cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
+                    aligned = misc.imresize(cropped, (args.image_size, args.image_size), interp='bilinear')
+                    prewhitened = facenet.prewhiten(aligned)
+                    dl.append(Data(image_path = dl[i].image_path, image = prewhitened, cluster_label = dl[i].cluster_label, emb = dl[i].emb, outlier = dl[i].outlier))
                 print('image:'+dl[i].image_path+'\n has more than one face')
-                try:
-                    os.remove(dl[i].image_path)        #diagrafw ta frames xwris proswpa
-                    del dl[i]
-                except FileNotFoundError: 
-                    print("warning: file not found (already deleted)")
+                del dl[i]           #diagrafw to arxiko datalist, evala alla pio panw
                 nrof_samples-=1
                 i-=1
+                #edw t palia sto example
+                
             else:
                 det = np.squeeze(bounding_boxes[0,0:4])
                 bb = np.zeros(4, dtype=np.int32)
@@ -365,6 +376,8 @@ def main(args):
         frame.bind("<Configure>",myfunction)
         
         for i,outSum in enumerate(output_summary):
+            print (i)
+            print (outSum)
             c=i%2
             imgSum = os.listdir(outSum)
             path=outSum+'/'+imgSum[0]
@@ -389,7 +402,6 @@ def main(args):
     
     # "image_path image cluster_label emb") ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!!!!!!
     data_list = []
-    temp_data_list = []
     #sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
     video_path = 'D:/mpoulas.mp4'
     outl_const = args.outlierConstant
@@ -403,22 +415,18 @@ def main(args):
     else:
         dataset = facenet.get_dataset(output_dir)
         for path in dataset[0].image_paths: data_list.append(Data(image_path = path, image = None, cluster_label = None, emb = None, outlier = False))
-    load_and_align_data(data_list)
-    run_forward_pass(data_list, model)
-    #silhouette
-    #----------
-    sample_silhouette, best_cl, centers = kMSilhouette(data_list)
+    
+    temp_data_list = data_list
     #fix outliers
     for i in range(3):
+        load_and_align_data(temp_data_list)
+        run_forward_pass(temp_data_list, model)
+        data_list = data_list + temp_data_list
+        sample_silhouette, best_cl, centers = kMSilhouette(data_list)
+        temp_data_list = []
         redo, two_m_clusters = outliers(data_list, best_cl+2, sample_silhouette, outl_const, video_path, output_dir_vid)
         
-        if not redo == -1:  # if redo==True
-            load_and_align_data(temp_data_list)
-            run_forward_pass(temp_data_list, model)
-            data_list = data_list + temp_data_list
-            sample_silhouette, best_cl, centers = kMSilhouette(data_list)
-            temp_data_list = []
-        else:
+        if redo == -1:  # if redo==False
             break
     
     if two_m_clusters:        #an exei stoixeia mesa
@@ -444,25 +452,19 @@ def main(args):
                         data_list[j].cluster_label = best_cl + 1    #allazw mono gia to 2o label gt to 1o de me noiazei n meinei idio
                         
     
-    dispose, _ = outliers(data_list, best_cl+2, sample_silhouette, outl_const, video_path, output_dir_vid)
-    
     nrof_images = len(data_list)
-    if not dispose == -1:
-        best_cl -= 1
     outl_dir = os.path.expanduser(output_dir + '/outliers')
     if not os.path.exists(outl_dir):
         os.makedirs(outl_dir)
-    for j in range(nrof_images):
-        if data_list[j].cluster_label == dispose or data_list[j].outlier:
-            r,g,b = cv2.split(data_list[j].image)
-            img2 = cv2.merge([b*255,g*255,r*255])
-            #path manipulation for imwrite
-            outImWr=outl_dir+'/'+str(data_list[j].cluster_label)+' (cropped)'+os.path.basename(data_list[j].image_path)
-            cv2.imwrite(outImWr,img2)
-            copy(data_list[j].image_path,outl_dir)
     i=0
     while i < nrof_images:
-        if data_list[i].cluster_label == dispose or data_list[i].outlier:
+        if data_list[i].cluster_label == redo or data_list[i].outlier:
+            r,g,b = cv2.split(data_list[i].image)
+            img2 = cv2.merge([b*255,g*255,r*255])
+            #path manipulation for imwrite
+            outImWr=outl_dir+'/'+str(data_list[i].cluster_label)+' (cropped)'+os.path.basename(data_list[i].image_path)
+            cv2.imwrite(outImWr,img2)
+            copy(data_list[i].image_path,outl_dir)
             del data_list[i]
             nrof_images-=1
             i-=1
@@ -484,30 +486,34 @@ def main(args):
         r,g,b = cv2.split(data_list[j].image)
         img2 = cv2.merge([b*255,g*255,r*255])
         #path manipulation for imwrite
-        outImWr=output_dir_cluster[data_list[j].cluster_label]+' (cropped)'+'/'+os.path.basename(data_list[j].image_path)
+        outImWr = output_dir_cluster[data_list[j].cluster_label]+' (cropped)'+'/'+str(j)+' '+os.path.basename(data_list[j].image_path)
         cv2.imwrite(outImWr,img2)
-        copy(data_list[j].image_path,output_dir_cluster[data_list[j].cluster_label])
-    
-    #edw itn ta dispose t palia
-    
-    nrof_images = len(data_list)
+        copy(data_list[j].image_path, output_dir_cluster[data_list[j].cluster_label])
+        
     for i in range(best_cl+2):
         emb2 = []
         dataset3 = []
-        for j in range(nrof_images):
-            if (i==data_list[j].cluster_label):
-                emb2.append(data_list[j].emb)
-                dataset3.append(j)
-        Ccenter=[centers[i],centers[i]]
-        closest, _ = pairwise_distances_argmin_min(Ccenter, emb2)
-        copy(data_list[dataset3[closest[0]]].image_path,output_summary[i])
-        
-        r,g,b = cv2.split(data_list[dataset3[closest[0]]].image)
-        img2 = cv2.merge([b*255,g*255,r*255])
-        #path manipulation for imwrite
-        outImWr=output_summary[i]+'/(cropped)'+os.path.basename(data_list[dataset3[closest[0]]].image_path)
-        cv2.imwrite(outImWr,img2)
-        
+        if not redo == i:
+            for j in range(nrof_images):
+                if (i==data_list[j].cluster_label):
+                    emb2.append(data_list[j].emb)
+                    dataset3.append(j)
+            Ccenter=[centers[i],centers[i]]
+            closest, _ = pairwise_distances_argmin_min(Ccenter, emb2)
+            copy(data_list[dataset3[closest[0]]].image_path,output_summary[i])
+            
+            r,g,b = cv2.split(data_list[dataset3[closest[0]]].image)
+            img2 = cv2.merge([b*255,g*255,r*255])
+            #path manipulation for imwrite
+            outImWr=output_summary[i]+'/(cropped)'+os.path.basename(data_list[dataset3[closest[0]]].image_path)
+            cv2.imwrite(outImWr,img2)
+            
+    if not redo == -1:  # if redo==True
+        os.rmdir(output_dir_cluster[redo])  # delete these because it will be empty
+        os.rmdir(output_dir_cluster[redo]+' (cropped)')
+        os.rmdir(output_summary[redo])
+        del output_summary[redo]
+    
     show_del_gui(output_dir, output_summary)
     
 
