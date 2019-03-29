@@ -167,7 +167,7 @@ def main(args):
         cap.release()
 
     def load_and_align_data(dl):
-        minsize = 80 # minimum size of face
+        minsize = 150 # minimum size of face
         threshold = [ 0.8, 0.9, 0.9 ]  # three steps's threshold
         factor = 0.709 # scale factor
         
@@ -376,8 +376,6 @@ def main(args):
         frame.bind("<Configure>",myfunction)
         
         for i,outSum in enumerate(output_summary):
-            print (i)
-            print (outSum)
             c=i%2
             imgSum = os.listdir(outSum)
             path=outSum+'/'+imgSum[0]
@@ -410,15 +408,18 @@ def main(args):
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
     #na to svisw sto telos telos to kanw g n mn trexei to frame_getter kathe fora (isws to enswmatwsw sto GUI)
-    if False:
+    if True:
         frame_getter(frame_interval)
     else:
         dataset = facenet.get_dataset(output_dir)
         for path in dataset[0].image_paths: data_list.append(Data(image_path = path, image = None, cluster_label = None, emb = None, outlier = False))
     
     temp_data_list = data_list
+    data_list = []
     #fix outliers
     for i in range(3):
+        for dl in data_list:
+            dl.outlier = False
         load_and_align_data(temp_data_list)
         run_forward_pass(temp_data_list, model)
         data_list = data_list + temp_data_list
@@ -429,10 +430,10 @@ def main(args):
         if redo == -1:  # if redo==False
             break
     
-    if two_m_clusters:        #an exei stoixeia mesa
-        load_and_align_data(temp_data_list)   #den esvina ta cllabels p kanei o framgetter kai den itn 1:1 me t dataset
-        run_forward_pass(temp_data_list, model)
-        data_list = data_list + temp_data_list
+    if False: #two_m_clusters:        #an exei stoixeia mesa # an de parei ta geitonika th einai comple apo t bugs multi proswpwn alla mporei o 2-means n spasei idio proswpo
+        #load_and_align_data(temp_data_list)   #den esvina ta cllabels p kanei o framgetter kai den itn 1:1 me t dataset
+        #run_forward_pass(temp_data_list, model)
+        #data_list = data_list + temp_data_list
         nrof_images = len(data_list)
         while two_m_clusters:
             emb2 = []
@@ -450,8 +451,9 @@ def main(args):
                     first, cluster_labels_2 = cluster_labels_2[0], cluster_labels_2[1:]   #pop
                     if first == 1:
                         data_list[j].cluster_label = best_cl + 1    #allazw mono gia to 2o label gt to 1o de me noiazei n meinei idio
-                        
+                    data_list[j].outlier = False
     
+        
     nrof_images = len(data_list)
     outl_dir = os.path.expanduser(output_dir + '/outliers')
     if not os.path.exists(outl_dir):
