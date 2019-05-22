@@ -50,24 +50,24 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 def main(args):
 
     class Data:
-        def __init__(self, image_path, image, cluster_label, emb, outlier):
+        def __init__(self, image_path,cropped_img, prewhitened_img, cluster_label, emb, outlier):
             self.image_path = image_path
-            self.image = image
+            self.prewhitened_img = prewhitened_img
+            self.cropped_img = cropped_img
             self.cluster_label = cluster_label
             self.emb = emb
             self.outlier = outlier
             
         def print_data(self):
             print(self.image_path)
-            print(self.image)
+            print(self.prewhitened_img)
             print(self.cluster_label)
             print(self.emb)
        
       
-    def gui(video_path, output_dir, model, outl_const):
-
+    def gui(video_path, output_dir, model, outl_const, frame_interval):
         def BVideoFunction(video_path):
-            video_path =  filedialog.askopenfilename(initialdir = os.path.dirname(video_path), title = "Choose Video source",filetypes = (("avi files","*.avi"),("mp4 files","*.mp4"),("all files","*.*")))
+            video_path =  filedialog.askopenfilename(initialdir = '', title = "Choose Video source",filetypes = (("avi files","*.avi"),("mp4 files","*.mp4"),("all files","*.*")))
             retArgs[0] = video_path
             
         def BOutpDirFunction(output_dir):
@@ -88,7 +88,6 @@ def main(args):
                 root.destroy()
                 exit()
         
-        frame_interval = 50   # Number of frames after which to save
         retArgs = [video_path, output_dir, model, frame_interval, outl_const]
         root = Tk(className = ' Finding Distinct Faces')
         root.configure(background='#A3CEDC')
@@ -134,7 +133,7 @@ def main(args):
             path = output_dir_vid+ "/frame-" + str(int(cap.get(1)-1)) + ".jpg"
             if not (os.path.isfile(path)):
                 cv2.imwrite(path, frame_read)
-                temp_data_list.append(Data(image_path = path, image = None, cluster_label = cl, emb = None, outlier = False))
+                temp_data_list.append(Data(image_path = path, prewhitened_img = None, cropped_img = None, cluster_label = cl, emb = None, outlier = False))
         
         if frame is None:
             frame_count = 0
@@ -144,7 +143,7 @@ def main(args):
                     if (frame_count % frame_interval) == 0:
                         path = output_dir_vid+ "/frame-" + str(frame_count) + ".jpg"
                         cv2.imwrite(path, frame)
-                        data_list.append(Data(image_path = path, image = None, cluster_label = None, emb = None, outlier = False))
+                        data_list.append(Data(image_path = path, prewhitened_img = None, cropped_img = None, cluster_label = None, emb = None, outlier = False))
                     frame_count+=1
                 else:
                     break
@@ -206,13 +205,11 @@ def main(args):
                     cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
                     aligned = misc.imresize(cropped, (args.image_size, args.image_size), interp='bilinear')
                     prewhitened = facenet.prewhiten(aligned)
-                    dl.append(Data(image_path = dl[i].image_path, image = prewhitened, cluster_label = dl[i].cluster_label, emb = dl[i].emb, outlier = dl[i].outlier))
+                    dl.append(Data(image_path = dl[i].image_path, prewhitened_img = prewhitened, cropped_img = aligned, cluster_label = dl[i].cluster_label, emb = dl[i].emb, outlier = dl[i].outlier))
                 print('image:'+dl[i].image_path+'\n has more than one face')
                 del dl[i]           #diagrafw to arxiko datalist, evala alla pio panw
                 nrof_samples-=1
                 i-=1
-                #edw t palia sto example
-                
             else:
                 det = np.squeeze(bounding_boxes[0,0:4])
                 bb = np.zeros(4, dtype=np.int32)
@@ -223,12 +220,24 @@ def main(args):
                 cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
                 aligned = misc.imresize(cropped, (args.image_size, args.image_size), interp='bilinear')
                 prewhitened = facenet.prewhiten(aligned)
-                '''r,g,b = cv2.split(prewhitened)
+                r,g,b = cv2.split(cropped)
+                img2 = cv2.merge([b,g,r])
+                '''cv2.imshow('image'+str(i),img2)   
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
+                r,g,b = cv2.split(aligned)
                 img2 = cv2.merge([b,g,r])
                 cv2.imshow('image'+str(i),img2)   
                 cv2.waitKey(0)
-                cv2.destroyAllWindows()'''
-                dl[i].image = prewhitened
+                cv2.destroyAllWindows()
+                r,g,b = cv2.split(prewhitened)
+                img2 = cv2.merge([b,g,r])
+                cv2.imshow('image'+str(i),img2)   
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
+                '''
+                dl[i].prewhitened_img = prewhitened
+                dl[i].cropped_img = aligned
             i+=1
     
     def run_forward_pass(dl, model):
@@ -241,7 +250,7 @@ def main(args):
                 embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
                 phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
                 # Extract images from dl
-                images = [x.image for x in dl]
+                images = [x.prewhitened_img for x in dl]
                 # Run forward pass to calculate embeddings
                 feed_dict = { images_placeholder: images, phase_train_placeholder:False }
                 embs = sess.run(embeddings, feed_dict=feed_dict)
@@ -398,12 +407,12 @@ def main(args):
         root.protocol("WM_DELETE_WINDOW", on_closing)
         root.mainloop()
     
-    # "image_path image cluster_label emb") ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!!!!!!
     data_list = []
     #sys.stdout = open(os.path.dirname(os.path.realpath(__file__))+'/output.txt', 'w+') #redirect output
-    video_path = 'D:/mpoulas.mp4'
-    outl_const = args.outlierConstant
-    video_path, output_dir, model, frame_interval, outl_const = gui(video_path, args.output_dir, args.model, outl_const)
+    if len(sys.argv)==1:
+        video_path, output_dir, model, frame_interval, outl_const = gui(args.video_path, args.output_dir, args.model, args.outlier_constant, args.frame_interval)
+    else:
+        video_path = args.video_path; output_dir = args.output_dir; model = args.model; frame_interval = args.frame_interval; outl_const = args.outlier_constant
     output_dir_vid = os.path.expanduser(output_dir + '/video')
     if not os.path.exists(output_dir_vid):
         os.makedirs(output_dir_vid)
@@ -412,7 +421,7 @@ def main(args):
         frame_getter(frame_interval)
     else:
         dataset = facenet.get_dataset(output_dir)
-        for path in dataset[0].image_paths: data_list.append(Data(image_path = path, image = None, cluster_label = None, emb = None, outlier = False))
+        for path in dataset[0].image_paths: data_list.append(Data(image_path = path, prewhitened_img = None, cropped_img = None, cluster_label = None, emb = None, outlier = False))
     
     temp_data_list = data_list
     data_list = []
@@ -461,7 +470,7 @@ def main(args):
     i=0
     while i < nrof_images:
         if data_list[i].cluster_label == redo or data_list[i].outlier:
-            r,g,b = cv2.split(data_list[i].image)
+            r,g,b = cv2.split(data_list[i].prewhitened_img)
             img2 = cv2.merge([b*255,g*255,r*255])
             #path manipulation for imwrite
             outImWr=outl_dir+'/'+str(data_list[i].cluster_label)+' (cropped)'+os.path.basename(data_list[i].image_path)
@@ -476,8 +485,8 @@ def main(args):
     output_dir_cluster = [None] * (best_cl+2)
     output_summary = [None] * (best_cl+2)
     for i in range(best_cl+2):
-        output_dir_cluster[i] = os.path.expanduser(output_dir + '/omada '+str(i))
-        output_summary[i] = os.path.expanduser(output_dir + '/SUMMARY/omada '+str(i))
+        output_dir_cluster[i] = os.path.expanduser(output_dir + '/cluster '+str(i))
+        output_summary[i] = os.path.expanduser(output_dir + '/SUMMARY/cluster '+str(i))
         if not os.path.exists(output_dir_cluster[i]):
             os.makedirs(output_dir_cluster[i])
         if not os.path.exists(output_dir_cluster[i]+' (cropped)'):
@@ -485,7 +494,7 @@ def main(args):
         if not os.path.exists(output_summary[i]):
             os.makedirs(output_summary[i])
     for j in range(nrof_images):
-        r,g,b = cv2.split(data_list[j].image)
+        r,g,b = cv2.split(data_list[j].prewhitened_img)
         img2 = cv2.merge([b*255,g*255,r*255])
         #path manipulation for imwrite
         outImWr = output_dir_cluster[data_list[j].cluster_label]+' (cropped)'+'/'+str(j)+' '+os.path.basename(data_list[j].image_path)
@@ -504,8 +513,8 @@ def main(args):
             closest, _ = pairwise_distances_argmin_min(Ccenter, emb2)
             copy(data_list[dataset3[closest[0]]].image_path,output_summary[i])
             
-            r,g,b = cv2.split(data_list[dataset3[closest[0]]].image)
-            img2 = cv2.merge([b*255,g*255,r*255])
+            r,g,b = cv2.split(data_list[dataset3[closest[0]]].cropped_img)
+            img2 = cv2.merge([b,g,r])
             #path manipulation for imwrite
             outImWr=output_summary[i]+'/(cropped)'+os.path.basename(data_list[dataset3[closest[0]]].image_path)
             cv2.imwrite(outImWr,img2)
@@ -524,10 +533,12 @@ def main(args):
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     
+    parser.add_argument('--video_path', type=str, help='input video', default='Cristiano Ronaldo.mp4')
     parser.add_argument('--model', type=str, 
-        help='Could be either a directory containing the meta_file and ckpt_file or a model protobuf (.pb) file', default='~/models/facenet/20170512-110547/20170512-110547.pb')
-    parser.add_argument('--output_dir', type=str, help='output directory', default='C:/Users/Harris/Documents/GitHub/facenet-private/frames')
-    parser.add_argument('--outlierConstant', type=float, help='Constant for fixing outliers. The smaller the harder to find outlier', default=0.1)
+        help='Could be either a directory containing the meta_file and ckpt_file or a model protobuf (.pb) file', default='20170512-110547.pb')
+    parser.add_argument('--frame_interval', type=int, help='Number of frames after which to save', default=50)
+    parser.add_argument('--output_dir', type=str, help='output directory', default='frames')
+    parser.add_argument('--outlier_constant', type=float, help='Constant for fixing outliers. The smaller the harder to find outlier', default=0.1)
     parser.add_argument('--image_size', type=int,
         help='Image size (height, width) in pixels.', default=160)
     parser.add_argument('--margin', type=int,
