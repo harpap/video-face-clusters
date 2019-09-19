@@ -60,9 +60,9 @@ def main(args):
             
         def print_data(self):
             print(self.image_path)
-            print(self.prewhitened_img)
-            print(self.cluster_label)
-            print(self.emb)
+            #print(self.prewhitened_img)
+            #print(self.cluster_label)
+            #print(self.emb)
        
       
     def gui(video_path, output_dir, model, outl_const, frame_interval):
@@ -220,9 +220,10 @@ def main(args):
                 cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
                 aligned = misc.imresize(cropped, (args.image_size, args.image_size), interp='bilinear')
                 prewhitened = facenet.prewhiten(aligned)
+                '''
                 r,g,b = cv2.split(cropped)
                 img2 = cv2.merge([b,g,r])
-                '''cv2.imshow('image'+str(i),img2)   
+                cv2.imshow('image'+str(i),img2)   
                 cv2.waitKey(0)
                 cv2.destroyAllWindows()
                 r,g,b = cv2.split(aligned)
@@ -467,37 +468,39 @@ def main(args):
     outl_dir = os.path.expanduser(output_dir + '/outliers')
     if not os.path.exists(outl_dir):
         os.makedirs(outl_dir)
-    i=0
+    i=0; j=0;
     while i < nrof_images:
         if data_list[i].cluster_label == redo or data_list[i].outlier:
             r,g,b = cv2.split(data_list[i].prewhitened_img)
             img2 = cv2.merge([b*255,g*255,r*255])
             #path manipulation for imwrite
-            outImWr=outl_dir+'/'+str(data_list[i].cluster_label)+' (cropped)'+os.path.basename(data_list[i].image_path)
+            outImWr=outl_dir+'/'+str(j)+' cl- '+str(data_list[i].cluster_label)+' (cropped) '+os.path.basename(data_list[i].image_path)
             cv2.imwrite(outImWr,img2)
             copy(data_list[i].image_path,outl_dir)
             del data_list[i]
             nrof_images-=1
             i-=1
-        i+=1
+        i+=1; j+=1;
     
     nrof_images = len(data_list)
     output_dir_cluster = [None] * (best_cl+2)
+    output_dir_cluster_face = [None] * (best_cl+2)
     output_summary = [None] * (best_cl+2)
     for i in range(best_cl+2):
         output_dir_cluster[i] = os.path.expanduser(output_dir + '/cluster '+str(i))
+        output_dir_cluster_face[i] = os.path.expanduser(output_dir + '/face cluster '+str(i))
         output_summary[i] = os.path.expanduser(output_dir + '/SUMMARY/cluster '+str(i))
         if not os.path.exists(output_dir_cluster[i]):
             os.makedirs(output_dir_cluster[i])
-        if not os.path.exists(output_dir_cluster[i]+' (cropped)'):
-            os.makedirs(output_dir_cluster[i]+' (cropped)')
+        if not os.path.exists(output_dir_cluster_face[i]):
+            os.makedirs(output_dir_cluster_face[i])
         if not os.path.exists(output_summary[i]):
             os.makedirs(output_summary[i])
     for j in range(nrof_images):
         r,g,b = cv2.split(data_list[j].prewhitened_img)
         img2 = cv2.merge([b*255,g*255,r*255])
         #path manipulation for imwrite
-        outImWr = output_dir_cluster[data_list[j].cluster_label]+' (cropped)'+'/'+str(j)+' '+os.path.basename(data_list[j].image_path)
+        outImWr = output_dir_cluster_face[data_list[j].cluster_label]+'/'+str(j)+' '+os.path.basename(data_list[j].image_path)
         cv2.imwrite(outImWr,img2)
         copy(data_list[j].image_path, output_dir_cluster[data_list[j].cluster_label])
         
@@ -521,11 +524,11 @@ def main(args):
             
     if not redo == -1:  # if redo==True
         os.rmdir(output_dir_cluster[redo])  # delete these because it will be empty
-        os.rmdir(output_dir_cluster[redo]+' (cropped)')
+        os.rmdir(output_dir_cluster_face[redo])
         os.rmdir(output_summary[redo])
         del output_summary[redo]
-    
-    show_del_gui(output_dir, output_summary)
+    if len(sys.argv)==1:
+        show_del_gui(output_dir, output_summary)
     
 
 
